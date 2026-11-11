@@ -73,6 +73,36 @@ function useSetup(){
     --night-band:rgba(156,156,255,.10); --shadow:none;
   }
 }
+/* night mode: dark red so it doesn't wake anyone at night feeds */
+html.night{color-scheme:dark;
+  --bg:#000; --card:#110807; --ink:#E7A094; --muted:#8C564D; --line:#2A1411;
+  --feed:#F0846C; --feed-soft:#2A120E; --sleep:#D98A74; --sleep-soft:#24110D;
+  --ok:#C98A62; --warn:#E39552; --bad:#F06C5A; --warn-soft:#2B1708; --bad-soft:#2D0F0B;
+  --night-band:rgba(217,138,116,.08); --shadow:none}
+html.night .ico,html.night .ii,html.night .vi,html.night .tabs svg{filter:sepia(1) saturate(1.6) hue-rotate(-25deg) brightness(.85)}
+html.night .btns .btn{min-height:86px;font-size:24px}
+html.night #sleepBtn{min-height:74px;font-size:21px}
+html.night #vitCard,html.night .ins,html.night #todayCard .wkh{display:none!important}
+.moon{border:0;background:none;color:var(--muted);font-size:19px;padding:6px 4px;line-height:1}
+html.night .moon{color:var(--sleep)}
+/* summary for the health nurse */
+.sumbtn{display:flex;align-items:center;gap:10px;width:100%;border:0;background:var(--card);color:var(--ink);font:inherit;font-weight:700;font-size:15px;border-radius:18px;padding:14px 16px;margin:10px 0 0;box-shadow:var(--shadow);text-align:left}
+.sumbtn span{margin-left:auto;color:var(--muted);font-weight:600}
+.sum h4{margin:16px 0 6px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.sum .kv{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sum .kv div{background:var(--bg);border-radius:12px;padding:9px 11px}
+.sum .kv b{display:block;font-size:18px}.sum .kv span{font-size:12px;color:var(--muted)}
+.sum table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+.sum th{font-size:11px;color:var(--muted);font-weight:700;text-align:right;padding:4px 3px;border-bottom:1px solid var(--line)}
+.sum td{text-align:right;padding:6px 3px;border-bottom:1px solid var(--line)}
+.sum th:first-child,.sum td:first-child{text-align:left}
+.sum .note{font-size:12px;color:var(--muted);margin-top:8px}
+#printArea{display:none}
+@media print{
+  body>*{display:none!important} #printArea{display:block!important;color:#000;background:#fff;padding:0 6mm;font-size:12px}
+  #printArea .kv div{background:#f2f2f2} #printArea th,#printArea td{border-color:#ccc}
+  html,body{background:#fff!important}
+}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
 html,body{margin:0;background:var(--bg);color:var(--ink);
@@ -292,6 +322,7 @@ h2{font-size:15px;margin:18px 4px 8px;color:var(--muted);font-weight:700;text-tr
     <div><h1 id="hello">Baby log</h1><div class="age" id="ageTxt"></div></div>
     <div style="display:flex;align-items:center;gap:4px">
       <button class="sync" id="sync" onclick="refresh()"><span class="dot" id="dot"></span><span id="synctxt">Loading…</span></button>
+      <button class="moon" id="moonBtn" onclick="toggleNight()" aria-label="Night mode">☾</button>
       <button class="gear" onclick="openSettings()" aria-label="Settings"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     </div>
   </div>
@@ -346,6 +377,7 @@ h2{font-size:15px;margin:18px 4px 8px;color:var(--muted);font-weight:700;text-tr
     <div id="dlist"></div>
     <div class="hint">Tap an entry to change its time or delete it</div>
   </div>
+  <button class="sumbtn" onclick="openSummary(7)">📋 Summary for the health nurse <span>›</span></button>
   <button class="undo" id="undoBtn" onclick="undoLast()">Undo last entry</button>
   </section>
 
@@ -1469,6 +1501,99 @@ function tab(t){ TAB=t; try{localStorage.setItem('babylog_tab',t)}catch(e){}
   document.querySelectorAll('#tabs button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-t')===t)});
   window.scrollTo(0,0); }
 
+/* ---------- night mode (per phone): on by itself 21–06, the moon button overrides until the next switch ---------- */
+var NIGHT_ON=null, WAKELOCK=null;
+function nightAuto(t){ var m=minsOfDay(t); return m>=21*60||m<6*60; }
+function nextSwitch(t){ var d=new Date(t), m=d.getHours()*60+d.getMinutes(); d.setSeconds(0,0);
+  if(m<6*60) d.setHours(6,0); else if(m<21*60) d.setHours(21,0); else { d.setDate(d.getDate()+1); d.setHours(6,0); } return d.getTime(); }
+function nightOverride(){ try{ var o=JSON.parse(localStorage.getItem('babylog_night')||'null'); if(o&&o.until>Date.now())return o; }catch(e){} return null; }
+function applyNight(){
+  var o=nightOverride(), on=o?o.on:nightAuto(Date.now());
+  if(on!==NIGHT_ON){ NIGHT_ON=on; document.documentElement.classList.toggle('night',on);
+    document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){ if(!m.dataset.c)m.dataset.c=m.content; m.content=on?'#000000':m.dataset.c; }); }
+  keepAwake(on&&document.visibilityState==='visible');
+}
+function toggleNight(){ var on=!NIGHT_ON; try{ localStorage.setItem('babylog_night',JSON.stringify({on:on,until:nextSwitch(Date.now())})); }catch(e){}
+  applyNight(); toast(on?'Night mode on – screen stays on while the app is open':'Night mode off'); }
+function keepAwake(want){
+  try{ if(want&&!WAKELOCK&&navigator.wakeLock) navigator.wakeLock.request('screen').then(function(l){ WAKELOCK=l; l.addEventListener('release',function(){WAKELOCK=null}); }).catch(function(){});
+       if(!want&&WAKELOCK){ WAKELOCK.release(); WAKELOCK=null; } }catch(e){}
+}
+document.addEventListener('visibilitychange',applyNight);
+setInterval(applyNight,30000);
+
+/* ---------- summary for the health nurse ---------- */
+var SUMDAYS=7;
+function summaryData(days){
+  var n=now(), end=startOfDay(n), rows=[], first=Infinity;
+  M.feeds.forEach(function(f){first=Math.min(first,f.start)}); M.sleeps.forEach(function(x){first=Math.min(first,x.start)});
+  var nights=nightsList();
+  for(var i=days;i>=1;i--){
+    var e=new Date(end); e.setDate(e.getDate()-i+1); var d1=e.getTime(); var b=new Date(end); b.setDate(b.getDate()-i); var d0=b.getTime();
+    if(d1<=first)continue;
+    var fd=M.feeds.filter(function(f){return f.start>=d0&&f.start<d1});
+    if(!fd.length&&!sleepIn(d0,d1))continue;
+    var naps=M.sleeps.filter(function(x){return isNap(x)&&x.start>=d0&&x.start<d1});
+    var nt=nights.filter(function(x){return x.bed>=d0+12*HOUR&&x.bed<d1})[0];
+    var nightFeeds=nt?nt.feeds:null;
+    rows.push({d:d0, feeds:fd.length, sleep:sleepIn(d0,d1), day:naps.reduce(function(a,x){return a+x.dur},0), naps:naps.length,
+      napLen:naps.map(function(x){return x.dur}), bed:nt?nt.bed:null, up:nt?nt.end:null, stretch:nt?nt.stretch:null, nfeeds:nightFeeds, nslept:nt?nt.slept:null,
+      vit:M.vits.some(function(v){return v.t>=d0&&v.t<d1})});
+  }
+  return rows;
+}
+function sumAvg(rows,k){ var a=rows.map(function(r){return r[k]}).filter(function(v){return v!=null}); return a.length?avg(a):null; }
+function hmM(m){ return m==null?'–':fmtTod(m); }
+function durS(ms){ return ms==null?'–':dur(ms,true); }
+function summaryHtml(days,forPrint){
+  var rows=summaryData(days), S=M.S, n=now();
+  var ageD=Math.floor((n-parseLocal(S.birth+'T00:00:00'))/DAY), age=Math.floor(ageD/7)+' weeks '+(ageD%7)+' days';
+  if(!rows.length) return '<div class="empty">Not enough data yet.</div>';
+  var bedM=rows.filter(function(r){return r.bed}).map(function(r){return todMin(r.bed,true)}), upM=rows.filter(function(r){return r.up}).map(function(r){return todMin(r.up)});
+  var stretches=rows.map(function(r){return r.stretch}).filter(Boolean), allNap=[].concat.apply([],rows.map(function(r){return r.napLen}));
+  var from=new Date(rows[0].d), to=new Date(rows[rows.length-1].d), fmt=function(d){return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})};
+  var h='<div class="sum">'+
+    (forPrint?'<h2 style="margin:0 0 4px">Baby log – summary</h2>':'')+
+    '<div class="sh-sub">'+fmt(from)+' – '+fmt(to)+' ('+rows.length+' full days) · age '+age+'</div>'+
+    '<h4>Average per day</h4><div class="kv">'+
+      '<div><b>'+(Math.round(sumAvg(rows,'feeds')*10)/10)+'</b><span>Feeds (24 h)</span></div>'+
+      '<div><b>'+durS(sumAvg(rows,'sleep'))+'</b><span>Sleep in total (24 h)</span></div>'+
+      '<div><b>'+durS(sumAvg(rows,'day'))+'</b><span>Day sleep · '+(Math.round(sumAvg(rows,'naps')*10)/10)+' naps</span></div>'+
+      '<div><b>'+durS(allNap.length?median(allNap):null)+'</b><span>Typical nap length</span></div>'+
+    '</div><h4>Nights</h4><div class="kv">'+
+      '<div><b>'+hmM(bedM.length?avg(bedM):null)+'</b><span>Bedtime (average)</span></div>'+
+      '<div><b>'+hmM(upM.length?avg(upM):null)+'</b><span>Up for the day (average)</span></div>'+
+      '<div><b>'+durS(stretches.length?avg(stretches):null)+'</b><span>Longest stretch (average)</span></div>'+
+      '<div><b>'+durS(stretches.length?Math.max.apply(null,stretches):null)+'</b><span>Longest stretch (best)</span></div>'+
+      '<div><b>'+(sumAvg(rows,'nfeeds')==null?'–':Math.round(sumAvg(rows,'nfeeds')*10)/10)+'</b><span>Feeds during the night</span></div>'+
+      (S.vitOn!==false?'<div><b>'+rows.filter(function(r){return r.vit}).length+' / '+rows.length+'</b><span>Days with vitamin D</span></div>':'')+
+    '</div><h4>Day by day</h4><table><tr><th>Day</th><th>Feeds</th><th>Sleep</th><th>Naps</th><th>Bed</th><th>Stretch</th>'+(S.vitOn!==false?'<th>D</th>':'')+'</tr>'+
+    rows.map(function(r){ return '<tr><td>'+new Date(r.d).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'numeric'})+'</td><td>'+r.feeds+'</td><td>'+durS(r.sleep)+'</td><td>'+r.naps+'</td><td>'+(r.bed?hm(r.bed):'–')+'</td><td>'+durS(r.stretch)+'</td>'+(S.vitOn!==false?'<td>'+(r.vit?'✓':'–')+'</td>':'')+'</tr>'; }).join('')+
+    '</table><div class="note">Feeds: presses within '+S.groupMin+' min count as one feed. Night: from bedtime until he is up for the day; "stretch" is the longest time asleep without a feed. Bed and stretch are listed on the day the night starts.</div></div>';
+  return h;
+}
+function summaryText(days){
+  var rows=summaryData(days); if(!rows.length)return '';
+  var t=['Baby log – last '+rows.length+' days'], a=function(k){return sumAvg(rows,k)};
+  var stretches=rows.map(function(r){return r.stretch}).filter(Boolean);
+  t.push('Per day: '+(Math.round(a('feeds')*10)/10)+' feeds, '+durS(a('sleep'))+' sleep ('+durS(a('day'))+' in '+(Math.round(a('naps')*10)/10)+' naps)');
+  if(stretches.length) t.push('Nights: longest stretch '+durS(avg(stretches))+' on average (best '+durS(Math.max.apply(null,stretches))+'), '+(Math.round(a('nfeeds')*10)/10)+' feeds per night');
+  t.push(''); rows.forEach(function(r){ t.push(new Date(r.d).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'numeric'})+': '+r.feeds+' feeds · '+durS(r.sleep)+' sleep · '+r.naps+' naps'+(r.bed?' · bed '+hm(r.bed):'')+(r.stretch?' · stretch '+durS(r.stretch):'')); });
+  return t.join('\n');
+}
+function openSummary(days){
+  if(!M)return; SUMDAYS=days||SUMDAYS;
+  openSheet('<h3>Summary for the health nurse</h3>'+
+    '<div style="margin:8px 0 4px">'+seg('sumDays',['7 days','14 days'],SUMDAYS===14?'14 days':'7 days')+'</div>'+
+    summaryHtml(SUMDAYS)+
+    '<div class="acts"><button class="b-sec" onclick="shareSummary()">Share as text</button><button class="b-pri" onclick="printSummary()">Save as PDF</button></div>');
+  $('sumDays').onpick=function(v){ openSummary(v==='14 days'?14:7); };
+}
+function shareSummary(){ var t=summaryText(SUMDAYS);
+  if(navigator.share) navigator.share({title:'Baby log summary',text:t}).catch(function(){}); else copyText(t,'Summary copied'); }
+function printSummary(){ var p=$('printArea'); if(!p){ p=document.createElement('div'); p.id='printArea'; document.body.appendChild(p); }
+  p.innerHTML=summaryHtml(SUMDAYS,true); setTimeout(function(){ window.print(); },50); }
+
 /* ---------- today row and last night ---------- */
 function todayRowHtml(n,sl){
   // always the last 24 hours up to now, so it is useful at any time of day
@@ -1740,6 +1865,7 @@ var tt; function toast(t,ms,html){ var el=$('toast'); if(html)el.innerHTML=t; el
 
 tab(TAB);
 refresh();
+applyNight();
 setInterval(render,15000);
 setInterval(refresh,60000);
 document.addEventListener('visibilitychange',function(){ if(!document.hidden) refresh(); });
