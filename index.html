@@ -585,6 +585,10 @@ function nextFeedGap(t,n){
 // ---- end of the app's calculations ----
 
 
+// the home-screen app – opens inside Scriptable, so no new Safari tabs
+const NEW_APP = "https://mgbundgaard.github.io/babylog/#u=" + encodeURIComponent(WIDGET_LINK) + "&k=" + encodeURIComponent(WIDGET_KEY);
+function openURL() { return "scriptable:///run/" + encodeURIComponent(Script.name()) + "?open=app"; }
+
 const fm = FileManager.local();
 const cachePath = fm.joinPath(fm.documentsDirectory(), "babylog-widget.json");
 
@@ -646,7 +650,7 @@ function addLine(st, parts, size, color) {
 async function build_widget() {
   const fam = config.widgetFamily || "accessoryRectangular";
   const w = new ListWidget();
-  w.url = "scriptable:///run/" + encodeURIComponent(Script.name());
+  w.url = openURL();
   const res = await loadData();
   if (res.error) { const t = w.addText("Baby log: " + res.error); t.font = Font.systemFont(12); return w; }
   DATA = res.d; skew = parseLocal(res.d.now) - Date.now(); M = build(res.d);
@@ -713,7 +717,7 @@ function homeWithButtons(w, s, res, napTxt) {
   w.setPadding(12, 12, 12, 12);
   const row = w.addStack(); row.layoutHorizontally(); row.spacing = 10;
   // left: numbers
-  const L = row.addStack(); L.layoutVertically(); L.url = runURL("");
+  const L = row.addStack(); L.layoutVertically(); L.url = openURL();
   const h1 = L.addText("SINCE FEED"); h1.font = Font.boldSystemFont(10); h1.textColor = feedC;
   if (s.feedAt) { const d = L.addDate(realDate(s.feedAt)); d.applyTimerStyle(); d.font = Font.boldRoundedSystemFont(26); d.textColor = ink; d.lineLimit = 1; d.minimumScaleFactor = 0.6; }
   const f2 = L.addText((s.nextSide ? "next: " + s.nextSide : "") + (s.nextFeed ? " · ≈ " + hmT(s.nextFeed) : "")); f2.font = Font.systemFont(11); f2.textColor = muted; f2.lineLimit = 1; f2.minimumScaleFactor = 0.7;
@@ -750,7 +754,7 @@ function homeLarge(w, s, res, napTxt) {
   w.backgroundColor = Color.dynamic(new Color("#F6F3EE"), new Color("#0F1220"));
   w.setPadding(14, 14, 14, 14);
   // timers
-  const top = w.addStack(); top.layoutHorizontally(); top.url = runURL("");
+  const top = w.addStack(); top.layoutHorizontally(); top.url = openURL();
   function block(parent, title, color, at, sub) {
     const b = parent.addStack(); b.layoutVertically();
     const h = b.addText(title); h.font = Font.boldSystemFont(11); h.textColor = color;
@@ -792,6 +796,7 @@ const sideName = { Left: "Left", Right: "Right", Both: "Both" };
 const kindName = { Left: "Feed · Left", Right: "Feed · Right", Both: "Feed · Both", Asleep: "Asleep", Awake: "Awake", "Vitamin D": "Vitamin D" };
 
 async function quickScreen() {
+  if (args && args.queryParameters && args.queryParameters.open === "app") { await Safari.openInApp(NEW_APP, true); return; }
   const table = new UITable();
   table.showSeparators = true;
   let status = "", busyNow = false;
@@ -861,7 +866,7 @@ async function quickScreen() {
     const le = M.lastEntry;
     buttonRow([
       { t: "↩︎ Undo" + (le ? " (" + (le.type === "Feed" ? (le.side || "Feed") : le.type) + " " + hm(le.t) + ")" : ""), size: 15, color: new Color("#C8423B"), fn: confirmUndo },
-      { t: "Open full app", size: 15, fn: () => { if (APP_LINK.indexOf("http") === 0) Safari.open(APP_LINK); } }
+      { t: "Open full app", size: 15, fn: () => { Safari.openInApp(NEW_APP, true); } }
     ], 52);
     table.reload();
   }

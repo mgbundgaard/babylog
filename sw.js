@@ -1,5 +1,5 @@
 // Keeps the app itself on the phone so it opens without a connection. Data still comes from the Sheet.
-const CACHE = 'babylog-39bc00f9e0';
+const CACHE = 'babylog-c76338478a';
 const FILES = ['./', 'index.html', 'icon-180.png', 'icon-192.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k))))); self.clients.claim(); });
