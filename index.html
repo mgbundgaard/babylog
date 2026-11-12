@@ -704,21 +704,33 @@ async function build_widget() {
   // home screen (small / medium / large)
   if (fam === "large" || fam === "extraLarge") return homeLarge(w, s, res, napTxt);
   if (fam === "medium") return homeWithButtons(w, s, res, napTxt);
-  w.backgroundColor = Color.dynamic(new Color("#F6F3EE"), new Color("#0F1220"));
-  const ink = Color.dynamic(new Color("#1E2433"), new Color("#ECEDF3"));
-  const muted = Color.dynamic(new Color("#7A7F8C"), new Color("#8C91A6"));
+  // small widget: next side as a big badge, and the whole widget turns night-purple while he sleeps
+  const asleep = s.state === "Asleep", sm = fam === "small";
+  if (asleep) { const g = new LinearGradient(); g.colors = [new Color("#2E2775"), new Color("#15112F")]; g.locations = [0, 1]; w.backgroundGradient = g; }
+  else w.backgroundColor = Color.dynamic(new Color("#F6F3EE"), new Color("#0F1220"));
+  const ink = asleep ? new Color("#F3F2FF") : Color.dynamic(new Color("#1E2433"), new Color("#ECEDF3"));
+  const muted = asleep ? new Color("#B9B5EC") : Color.dynamic(new Color("#7A7F8C"), new Color("#8C91A6"));
   const feedC = Color.dynamic(new Color("#E07A5F"), new Color("#F0907A"));
-  const sleepC = Color.dynamic(new Color("#5B5BD6"), new Color("#9C9CFF"));
-  w.setPadding(12, 14, 12, 14);
-  const h1 = w.addText("SINCE FEED"); h1.font = Font.boldSystemFont(fam === "small" ? 11 : 12); h1.textColor = feedC;
-  if (s.feedAt) { const d = w.addDate(realDate(s.feedAt)); d.applyTimerStyle(); d.font = Font.boldRoundedSystemFont(fam === "small" ? 26 : 34); d.textColor = ink; d.lineLimit = 1; d.minimumScaleFactor = 0.6; }
-  const f2 = w.addText((s.nextSide ? "next: " + s.nextSide : "") + (s.nextFeed ? " · ≈ " + hmT(s.nextFeed) : "")); f2.font = Font.systemFont(fam === "small" ? 12 : 14); f2.textColor = muted;
-  w.addSpacer(8);
-  const h2 = w.addText(s.state === "Asleep" ? "ASLEEP FOR" : s.state === "Awake" ? "AWAKE FOR" : "SLEEP"); h2.font = Font.boldSystemFont(fam === "small" ? 11 : 12); h2.textColor = sleepC;
-  if (s.state) { const d = w.addDate(realDate(s.since)); d.applyTimerStyle(); d.font = Font.boldRoundedSystemFont(fam === "small" ? 26 : 34); d.textColor = ink; d.lineLimit = 1; d.minimumScaleFactor = 0.6; }
-  if (napTxt) { const t = w.addText(napTxt.replace(" · ", "")); t.font = Font.systemFont(fam === "small" ? 12 : 14); t.textColor = muted; }
-  if (s.vitOn && !s.vitGiven && s.vitLate) { w.addSpacer(6); const v = w.addText("💊 D-vitamin not given"); v.font = Font.boldSystemFont(11); v.textColor = new Color("#D9822B"); }
-  if (!res.fresh) { w.addSpacer(4); const o = w.addText("offline – last update"); o.font = Font.systemFont(9); o.textColor = muted; }
+  w.setPadding(12, 14, 12, 12);
+  const r1 = w.addStack(); r1.layoutHorizontally(); r1.centerAlignContent();
+  const c1 = r1.addStack(); c1.layoutVertically();
+  const h1 = c1.addText("SINCE FEED"); h1.font = Font.boldSystemFont(sm ? 10 : 12); h1.textColor = feedC;
+  if (s.feedAt) { const d = c1.addDate(realDate(s.feedAt)); d.applyTimerStyle(); d.font = Font.boldRoundedSystemFont(sm ? 24 : 34); d.textColor = ink; d.lineLimit = 1; d.minimumScaleFactor = 0.6; }
+  else { const t = c1.addText("–"); t.font = Font.boldRoundedSystemFont(24); t.textColor = ink; }
+  r1.addSpacer();
+  if (s.nextSide) { const bd = r1.addStack(); const z = sm ? 36 : 44; bd.size = new Size(z, z); bd.cornerRadius = z / 2; bd.backgroundColor = feedC; bd.centerAlignContent();
+    const t = bd.addText(s.nextSide[0]); t.font = Font.heavyRoundedSystemFont(sm ? 20 : 24); t.textColor = Color.white(); }
+  const f2 = w.addText((s.nextSide ? "next " + s.nextSide : "") + (s.nextFeed ? " ≈ " + hmT(s.nextFeed) : "")); f2.font = Font.semiboldSystemFont(sm ? 12 : 14); f2.textColor = muted; f2.lineLimit = 1; f2.minimumScaleFactor = 0.7;
+  w.addSpacer(sm ? 8 : 10);
+  if (s.state) {
+    const chip = w.addStack(); chip.layoutHorizontally(); chip.centerAlignContent(); chip.cornerRadius = 7; chip.setPadding(2, 7, 2, 7);
+    chip.backgroundColor = asleep ? new Color("#8F8BFF") : new Color("#E9A23B");
+    const ct = chip.addText(asleep ? "😴 ASLEEP" : "☀️ AWAKE"); ct.font = Font.heavySystemFont(sm ? 11 : 12); ct.textColor = asleep ? Color.white() : new Color("#2A1A00");
+    const d = w.addDate(realDate(s.since)); d.applyTimerStyle(); d.font = Font.boldRoundedSystemFont(sm ? 24 : 34); d.textColor = ink; d.lineLimit = 1; d.minimumScaleFactor = 0.6;
+  }
+  if (napTxt && !asleep) { const t = w.addText(napTxt.replace(" · ", "")); t.font = Font.systemFont(sm ? 11 : 14); t.textColor = muted; t.lineLimit = 1; }
+  if (s.vitOn && !s.vitGiven && s.vitLate) { w.addSpacer(4); const v = w.addText("💊 D-vitamin"); v.font = Font.boldSystemFont(11); v.textColor = new Color("#D9822B"); }
+  if (!res.fresh) { w.addSpacer(2); const o = w.addText("offline"); o.font = Font.systemFont(9); o.textColor = muted; }
   return w;
 }
 
