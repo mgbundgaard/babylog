@@ -914,9 +914,32 @@ async function quickScreen() {
   await table.present(false);
 }
 
+// Run from the Shortcuts app ("Run Script" with a text such as Next, Left, Right, Sleep, Asleep, Awake, Vitamin D):
+// logs in the background and hands a short result back to the shortcut, e.g. "✓ Left 09:12"
+async function fromShortcut(p) {
+  let want = String(p || "").trim(); const lw = want.toLowerCase();
+  const res = await loadData();
+  if (res.error || !res.fresh) { Script.setShortcutOutput("⚠️ " + (res.error || "No connection – not saved")); return; }
+  DATA = res.d; skew = parseLocal(res.d.now) - Date.now(); M = build(res.d);
+  const lf = M.feeds[M.feeds.length - 1];
+  if (lw === "next" || lw === "feed") want = lf && lf.first === "Left" ? "Right" : "Left";
+  else if (lw === "sleep") want = M.state === "Asleep" ? "Awake" : "Asleep";
+  else want = { left: "Left", right: "Right", asleep: "Asleep", awake: "Awake", "vitamin d": "Vitamin D", "d-vitamin": "Vitamin D" }[lw] || want;
+  if (["Left", "Right", "Asleep", "Awake", "Vitamin D"].indexOf(want) < 0) { Script.setShortcutOutput("⚠️ Unknown: " + want); return; }
+  const le = M.lastEntry, n0 = now();
+  if (le && le.type === "Feed" && le.side === want && n0 - le.t < 90000) { Script.setShortcutOutput("Already logged " + want + " " + hm(le.t)); return; }
+  if (want === "Vitamin D" && M.vits.some(v => v.t >= startOfDay(n0))) { Script.setShortcutOutput("💊 Already given today"); return; }
+  try {
+    const d = await postJSON({ log: want });
+    Script.setShortcutOutput(d && d.rows ? "✓ " + (want === "Asleep" ? "😴 Asleep" : want === "Awake" ? "☀️ Awake" : want === "Vitamin D" ? "💊 Vitamin D" : want) + " " + hm(n0) : "⚠️ " + ((d && d.error) || "Not saved"));
+  } catch (e) { Script.setShortcutOutput("⚠️ No connection – not saved"); }
+}
+
 if (config.runsInWidget) {
   const widget = await build_widget();
   Script.setWidget(widget);
+} else if (args && args.shortcutParameter != null && String(args.shortcutParameter).trim() !== "") {
+  await fromShortcut(args.shortcutParameter);
 } else {
   await quickScreen();
 }
