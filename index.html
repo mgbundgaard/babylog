@@ -706,11 +706,11 @@ async function build_widget() {
   if (fam === "medium") return homeWithButtons(w, s, res, napTxt);
   // small widget: next side as a big badge, and the whole widget turns night-purple while he sleeps
   const asleep = s.state === "Asleep", sm = fam === "small";
-  if (asleep) { const g = new LinearGradient(); g.colors = [new Color("#2E2775"), new Color("#15112F")]; g.locations = [0, 1]; w.backgroundGradient = g; }
-  else w.backgroundColor = Color.dynamic(new Color("#F6F3EE"), new Color("#0F1220"));
-  const ink = asleep ? new Color("#F3F2FF") : Color.dynamic(new Color("#1E2433"), new Color("#ECEDF3"));
-  const muted = asleep ? new Color("#B9B5EC") : Color.dynamic(new Color("#7A7F8C"), new Color("#8C91A6"));
-  const feedC = Color.dynamic(new Color("#E07A5F"), new Color("#F0907A"));
+  // same colours as the app (light and dark): card, ink, feed coral, sleep purple
+  const C = (l, d) => Color.dynamic(new Color(l), new Color(d));
+  w.backgroundColor = asleep ? C("#E9E8FB", "#25264A") : C("#FFFFFF", "#181C2E");
+  const ink = C("#1E2433", "#ECEDF3"), muted = C("#7A7F8C", "#8C91A6");
+  const feedC = C("#E07A5F", "#F0907A"), sleepC = C("#5B5BD6", "#9C9CFF");
   w.setPadding(12, 14, 12, 12);
   const r1 = w.addStack(); r1.layoutHorizontally(); r1.centerAlignContent();
   const c1 = r1.addStack(); c1.layoutVertically();
@@ -724,12 +724,12 @@ async function build_widget() {
   w.addSpacer(sm ? 8 : 10);
   if (s.state) {
     const chip = w.addStack(); chip.layoutHorizontally(); chip.centerAlignContent(); chip.cornerRadius = 7; chip.setPadding(2, 7, 2, 7);
-    chip.backgroundColor = asleep ? new Color("#8F8BFF") : new Color("#E9A23B");
-    const ct = chip.addText(asleep ? "😴 ASLEEP" : "☀️ AWAKE"); ct.font = Font.heavySystemFont(sm ? 11 : 12); ct.textColor = asleep ? Color.white() : new Color("#2A1A00");
+    chip.backgroundColor = asleep ? sleepC : C("#FCEFD9", "#35291A");
+    const ct = chip.addText(asleep ? "😴 ASLEEP" : "☀️ AWAKE"); ct.font = Font.heavySystemFont(sm ? 11 : 12); ct.textColor = asleep ? Color.white() : C("#D9822B", "#F0A54E");
     const d = w.addDate(realDate(s.since)); d.applyTimerStyle(); d.font = Font.boldRoundedSystemFont(sm ? 24 : 34); d.textColor = ink; d.lineLimit = 1; d.minimumScaleFactor = 0.6;
   }
   if (napTxt && !asleep) { const t = w.addText(napTxt.replace(" · ", "")); t.font = Font.systemFont(sm ? 11 : 14); t.textColor = muted; t.lineLimit = 1; }
-  if (s.vitOn && !s.vitGiven && s.vitLate) { w.addSpacer(4); const v = w.addText("💊 D-vitamin"); v.font = Font.boldSystemFont(11); v.textColor = new Color("#D9822B"); }
+  if (s.vitOn && !s.vitGiven && s.vitLate) { w.addSpacer(4); const v = w.addText("💊 D-vitamin"); v.font = Font.boldSystemFont(11); v.textColor = C("#D9822B", "#F0A54E"); }
   if (!res.fresh) { w.addSpacer(2); const o = w.addText("offline"); o.font = Font.systemFont(9); o.textColor = muted; }
   return w;
 }
