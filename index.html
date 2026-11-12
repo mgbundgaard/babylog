@@ -525,7 +525,7 @@ function build(data){
   function blend(base,o){ if(!o.n)return base; var w=Math.min(1,o.n/S.trustN); return (1-w)*base+w*o.avg; }
   var dayWW=blend(typical,own('Day')), mornWW=blend(typical*S.morningPct,own('Morning'));
   var bedToday=bAvg!=null?startOfDay(n)+bAvg*MIN:null;
-  var kindNow='', expected=null, nextSleep=null, shortNap=lastSleepKind==='Nap'&&lastSleepDur<S.shortNap*MIN;
+  var kindNow='', expected=null, nextSleep=null, napEffect=0, napSlope=null, shortNap=lastSleepKind==='Nap'&&lastSleepDur<S.shortNap*MIN;
   if(state==='Awake'){
     var mNow=minsOfDay(n);
     if(lastSleepKind==='Night'){
@@ -533,7 +533,15 @@ function build(data){
       else kindNow='Morning';
     } else if(lastS&&bedToday&&mNow>=16*60&&lastS.start>=bedToday-45*MIN&&n-lastS.end<90*MIN) kindNow='Evening';
     else kindNow='Day';
-    if(kindNow==='Morning')expected=mornWW; else if(kindNow==='Day')expected=dayWW-(shortNap?S.shortNapCut:0);
+    if(kindNow==='Morning')expected=mornWW;
+    else if(kindNow==='Day'){ expected=dayWW;
+      // nap length: learned from his own last 2 weeks how much longer (or shorter) he stays up after a longer nap
+      if(lastS&&lastS.kind==='Nap'){ var P=[];
+        wakes.forEach(function(w){ if(w.kind!=='Day'||w.start<n-14*DAY||w.dur<30*MIN)return; var p=sleepEnding(w.start); if(p&&p.kind==='Nap'&&p.dur>=10*MIN)P.push([p.dur/MIN,w.dur/MIN]); });
+        if(P.length>=10){ var mx=0,my=0,sxy=0,sxx=0; P.forEach(function(q){mx+=q[0];my+=q[1]}); mx/=P.length; my/=P.length;
+          P.forEach(function(q){sxy+=(q[0]-mx)*(q[1]-my); sxx+=(q[0]-mx)*(q[0]-mx)});
+          var slope=sxx?Math.max(-0.5,Math.min(1,sxy/sxx)):0, napMid=med(P.map(function(q){return q[0]}));
+          napEffect=Math.max(-30,Math.min(30,slope*(lastS.dur/MIN-napMid))); napSlope=slope; expected+=napEffect; } } }
     if(expected!=null)nextSleep=since+expected*MIN;
   }
   // late afternoon: suggest bedtime instead of one more nap
@@ -548,7 +556,7 @@ function build(data){
   var lastEntry=null; for(var j=ev.length-1;j>=0;j--){ if(ev[j].type!=='Undo'&&!ev[j].cancel){lastEntry=ev[j];break;} }
   return {S:S,vits:vits,feeds:feeds,sleeps:sleeps,wakes:wakes,state:state,since:since,sinceEv:sinceEv,sinceMid:sinceMid,kindNow:kindNow,expected:expected,
           nextSleep:nextSleep,isBedtime:isBedtime,bedAvg:bAvg,typical:typical,dayWW:dayWW,isNight:isNight,effNs:ns,
-          curKind:function(t){return state==='Asleep'?((t-since>=LONG||isNight(since))?'Night':'Nap'):''},lastEntry:lastEntry,shortNap:shortNap};
+          curKind:function(t){return state==='Asleep'?((t-since>=LONG||isNight(since))?'Night':'Nap'):''},lastEntry:lastEntry,shortNap:shortNap,napEffect:napEffect,napSlope:napSlope};
 }
 
 /* ---------- shared rules so every number in the app agrees ---------- */
@@ -1061,7 +1069,7 @@ function build(data){
   function blend(base,o){ if(!o.n)return base; var w=Math.min(1,o.n/S.trustN); return (1-w)*base+w*o.avg; }
   var dayWW=blend(typical,own('Day')), mornWW=blend(typical*S.morningPct,own('Morning'));
   var bedToday=bAvg!=null?startOfDay(n)+bAvg*MIN:null;
-  var kindNow='', expected=null, nextSleep=null, shortNap=lastSleepKind==='Nap'&&lastSleepDur<S.shortNap*MIN;
+  var kindNow='', expected=null, nextSleep=null, napEffect=0, napSlope=null, shortNap=lastSleepKind==='Nap'&&lastSleepDur<S.shortNap*MIN;
   if(state==='Awake'){
     var mNow=minsOfDay(n);
     if(lastSleepKind==='Night'){
@@ -1069,7 +1077,15 @@ function build(data){
       else kindNow='Morning';
     } else if(lastS&&bedToday&&mNow>=16*60&&lastS.start>=bedToday-45*MIN&&n-lastS.end<90*MIN) kindNow='Evening';
     else kindNow='Day';
-    if(kindNow==='Morning')expected=mornWW; else if(kindNow==='Day')expected=dayWW-(shortNap?S.shortNapCut:0);
+    if(kindNow==='Morning')expected=mornWW;
+    else if(kindNow==='Day'){ expected=dayWW;
+      // nap length: learned from his own last 2 weeks how much longer (or shorter) he stays up after a longer nap
+      if(lastS&&lastS.kind==='Nap'){ var P=[];
+        wakes.forEach(function(w){ if(w.kind!=='Day'||w.start<n-14*DAY||w.dur<30*MIN)return; var p=sleepEnding(w.start); if(p&&p.kind==='Nap'&&p.dur>=10*MIN)P.push([p.dur/MIN,w.dur/MIN]); });
+        if(P.length>=10){ var mx=0,my=0,sxy=0,sxx=0; P.forEach(function(q){mx+=q[0];my+=q[1]}); mx/=P.length; my/=P.length;
+          P.forEach(function(q){sxy+=(q[0]-mx)*(q[1]-my); sxx+=(q[0]-mx)*(q[0]-mx)});
+          var slope=sxx?Math.max(-0.5,Math.min(1,sxy/sxx)):0, napMid=med(P.map(function(q){return q[0]}));
+          napEffect=Math.max(-30,Math.min(30,slope*(lastS.dur/MIN-napMid))); napSlope=slope; expected+=napEffect; } } }
     if(expected!=null)nextSleep=since+expected*MIN;
   }
   // late afternoon: suggest bedtime instead of one more nap
@@ -1084,7 +1100,7 @@ function build(data){
   var lastEntry=null; for(var j=ev.length-1;j>=0;j--){ if(ev[j].type!=='Undo'&&!ev[j].cancel){lastEntry=ev[j];break;} }
   return {S:S,vits:vits,feeds:feeds,sleeps:sleeps,wakes:wakes,state:state,since:since,sinceEv:sinceEv,sinceMid:sinceMid,kindNow:kindNow,expected:expected,
           nextSleep:nextSleep,isBedtime:isBedtime,bedAvg:bAvg,typical:typical,dayWW:dayWW,isNight:isNight,effNs:ns,
-          curKind:function(t){return state==='Asleep'?((t-since>=LONG||isNight(since))?'Night':'Nap'):''},lastEntry:lastEntry,shortNap:shortNap};
+          curKind:function(t){return state==='Asleep'?((t-since>=LONG||isNight(since))?'Night':'Nap'):''},lastEntry:lastEntry,shortNap:shortNap,napEffect:napEffect,napSlope:napSlope};
 }
 
 /* ---------- rendering ---------- */
@@ -1125,7 +1141,7 @@ function render(){
     else if(M.kindNow==='Evening'){ $('sleepSub').textContent='Woke after going down for the night – back down after the feed'; }
     else if(M.nextSleep){
       var wd=M.nextSleep-S.windDown*MIN;
-      $('sleepSub').innerHTML='Wind down <b>'+hm(wd)+'</b> · '+(M.isBedtime?'bedtime':'sleep')+' ≈ <b>'+hm(M.nextSleep)+'</b>'+(M.shortNap&&!M.isBedtime?' · short nap':'');
+      $('sleepSub').innerHTML='Wind down <b>'+hm(wd)+'</b> · '+(M.isBedtime?'bedtime':'sleep')+' ≈ <b>'+hm(M.nextSleep)+'</b>'+(!M.isBedtime&&Math.abs(M.napEffect)>=5?' · '+(M.napEffect<0?'short':'long')+' nap '+(M.napEffect<0?'−':'+')+Math.round(Math.abs(M.napEffect))+' min':'');
       $('sleepBarWrap').hidden=false; $('sleepBar').style.width=Math.min(100,(n-M.since)/(M.nextSleep-M.since)*100)+'%';
       if(n>=M.nextSleep+15*MIN){sc.className='card bad';sp.className='pill bad';sp.textContent='Overtired?';sp.hidden=false}
       else if(n>=wd){sc.className='card warn';sp.className='pill warn';sp.textContent=M.isBedtime?'Bedtime soon':'Wind down';sp.hidden=false}
@@ -1858,7 +1874,6 @@ function openSettings(){
     '<div class="setgrp"><div>Sleep suggestions</div>'+
       sr('s_wd','Wind down warning (min before)','','number',S.windDown,'inputmode="numeric"')+
       sr('s_sn','Short nap is under (min)','','number',S.shortNap,'inputmode="numeric"')+
-      sr('s_sc','After a short nap, shorten by (min)','','number',S.shortNapCut,'inputmode="numeric"')+
       sr('s_mp','First awake time of the day (%)','Compared with the rest of the day','number',Math.round(S.morningPct*100),'inputmode="numeric"')+
       sr('s_tn','Trust his own data after (naps)','Before that, it leans on his age','number',S.trustN,'inputmode="numeric"')+'</div>'+
     '<div class="setgrp"><div>Vitamin D</div>'+
@@ -1927,7 +1942,7 @@ function copyWidgetScript(){
 function saveSettingsUI(){
   var S=DATA.settings, v=function(id){return $(id).value};
   var n={birth:v('s_birth'),nightStart:v('s_ns'),nightEnd:v('s_ne'),groupMin:+v('s_gm'),feedAmber:+v('s_fa'),feedRed:+v('s_fr'),
-    windDown:+v('s_wd'),shortNap:+v('s_sn'),shortNapCut:+v('s_sc'),morningPct:+v('s_mp')/100,trustN:+v('s_tn'),vitOn:$('s_von').getAttribute('data-v')!=='Off',vitTime:v('s_vt')||'10:00',places:v('s_pl').split(',').map(function(x){return x.trim()}).filter(Boolean),
+    windDown:+v('s_wd'),shortNap:+v('s_sn'),shortNapCut:S.shortNapCut,morningPct:+v('s_mp')/100,trustN:+v('s_tn'),vitOn:$('s_von').getAttribute('data-v')!=='Off',vitTime:v('s_vt')||'10:00',places:v('s_pl').split(',').map(function(x){return x.trim()}).filter(Boolean),
     ageTable:S.ageTable.map(function(r,i){return [r[0],+v('s_age'+i)]})};
   if(!n.birth||!n.nightStart||!n.nightEnd){sheetErr('Fill in all fields');return}
   var sb=$('saveBtn'); sb.disabled=true; sb.textContent='Saving…';
