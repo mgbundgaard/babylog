@@ -582,6 +582,23 @@ function nextFeedGap(t,n){
   return ints.length?ints.reduce(function(a,b){return a+b},0)/ints.length:0;
 }
 
+/* ---------- next feed, nap-aware: in the day he feeds when he wakes, not in the middle of a nap ---------- */
+function nextFeedAt(lf,n){
+  var g=nextFeedGap(lf.start,n); if(!g) return null;
+  var t=lf.start+g, out={t:t,afterNap:false};
+  if(M.isNight(t)||M.kindNow==='Night'||M.kindNow==='Evening') return out;
+  function md(a){a=a.slice().sort(function(x,y){return x-y});var m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2}
+  var naps=M.sleeps.filter(function(x){return x.kind==='Nap'&&x.dur>=15*MIN&&x.start>=n-7*DAY&&x.end<=n});
+  if(naps.length<3) return out;
+  var napLen=md(naps.map(function(x){return x.dur})), dl=[];
+  naps.forEach(function(x){ var f=M.feeds.filter(function(f){return f.start>=x.end-10*MIN&&f.start<=x.end+45*MIN})[0]; if(f) dl.push(Math.max(0,f.start-x.end)); });
+  var delay=dl.length>=3?md(dl):10*MIN, wake=null;
+  if(M.state==='Asleep'&&M.curKind(n)==='Nap') wake=Math.max(n+5*MIN,M.since+napLen);            // napping now
+  else if(M.state==='Awake'&&M.nextSleep&&!M.isBedtime&&t>=M.nextSleep) wake=M.nextSleep+napLen;  // would land in the next nap
+  if(wake&&t<wake+delay){ out.t=wake+delay; out.afterNap=true; }
+  return out;
+}
+
 // ---- end of the app's calculations ----
 
 
@@ -621,7 +638,7 @@ function summary() {
   if (lf) {
     s.feedAt = lf.end; s.feedStart = lf.start; s.side = lf.side;
     s.nextSide = lf.first === "Left" ? "Right" : lf.first === "Right" ? "Left" : "";
-    const g = nextFeedGap(lf.start, n); s.nextFeed = g ? lf.start + g : null;
+    const nf = nextFeedAt(lf, n); s.nextFeed = nf ? nf.t : null; s.feedAfterNap = !!(nf && nf.afterNap);
   }
   s.state = M.state; s.since = M.since;
   s.nextSleep = M.state === "Awake" && M.nextSleep && M.kindNow !== "Night" && M.kindNow !== "Evening" ? M.nextSleep : null;
@@ -1048,8 +1065,8 @@ function render(){
   if(lf){
     var since=n-lf.end; $('feedBig').innerHTML=bigDur(since);
     nextSide=lf.first==='Left'?'Right':lf.first==='Right'?'Left':'';
-    var avg=nextFeedGap(lf.start,n);
-    $('feedSub').innerHTML='Last at <b>'+hm(lf.start)+'</b>'+(lf.side?' · '+lf.side:'')+(avg?' · next ≈ <b>'+hm(lf.start+avg)+'</b>':'');
+    var nf=nextFeedAt(lf,n);
+    $('feedSub').innerHTML='Last at <b>'+hm(lf.start)+'</b>'+(lf.side?' · '+lf.side:'')+(nf?' · next ≈ <b>'+hm(nf.t)+'</b>'+(nf.afterNap?' (after the nap)':''):'');
     if(since>=S.feedRed*HOUR){fc.className='card bad';fp.className='pill bad';fp.textContent='Overdue';fp.hidden=false}
     else if(since>=S.feedAmber*HOUR){fc.className='card warn';fp.className='pill warn';fp.textContent='Soon';fp.hidden=false}
   } else { $('feedBig').textContent='–'; $('feedSub').textContent='No feeds logged yet'; }
@@ -1497,6 +1514,23 @@ function nextFeedGap(t,n){
     if(a.length>=3) return med(a); }
   var ints=F.filter(function(f){return f.interval&&f.interval<12*HOUR&&f.start>=n-3*DAY}).map(function(f){return f.interval});
   return ints.length?ints.reduce(function(a,b){return a+b},0)/ints.length:0;
+}
+
+/* ---------- next feed, nap-aware: in the day he feeds when he wakes, not in the middle of a nap ---------- */
+function nextFeedAt(lf,n){
+  var g=nextFeedGap(lf.start,n); if(!g) return null;
+  var t=lf.start+g, out={t:t,afterNap:false};
+  if(M.isNight(t)||M.kindNow==='Night'||M.kindNow==='Evening') return out;
+  function md(a){a=a.slice().sort(function(x,y){return x-y});var m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2}
+  var naps=M.sleeps.filter(function(x){return x.kind==='Nap'&&x.dur>=15*MIN&&x.start>=n-7*DAY&&x.end<=n});
+  if(naps.length<3) return out;
+  var napLen=md(naps.map(function(x){return x.dur})), dl=[];
+  naps.forEach(function(x){ var f=M.feeds.filter(function(f){return f.start>=x.end-10*MIN&&f.start<=x.end+45*MIN})[0]; if(f) dl.push(Math.max(0,f.start-x.end)); });
+  var delay=dl.length>=3?md(dl):10*MIN, wake=null;
+  if(M.state==='Asleep'&&M.curKind(n)==='Nap') wake=Math.max(n+5*MIN,M.since+napLen);            // napping now
+  else if(M.state==='Awake'&&M.nextSleep&&!M.isBedtime&&t>=M.nextSleep) wake=M.nextSleep+napLen;  // would land in the next nap
+  if(wake&&t<wake+delay){ out.t=wake+delay; out.afterNap=true; }
+  return out;
 }
 
 /* ---------- tabs ---------- */
