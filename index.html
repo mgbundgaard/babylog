@@ -391,6 +391,33 @@ html.look-new .tabs{left:14px;right:14px;bottom:calc(8px + env(safe-area-inset-b
   background:color-mix(in srgb,var(--card) 80%,transparent);box-shadow:0 8px 28px rgba(0,0,0,.28)}
 html.look-new .tabs button.on{background:color-mix(in srgb,var(--sleep) 18%,transparent)}
 html.night .dial .mk.sun,html.night .dial .mk.moon{box-shadow:none}
+
+/* ---- new look: crisp cleanup ---- */
+html.look-new .top{margin:2px 2px 4px}
+html.look-new .top .sync{font-size:13px;font-variant-numeric:tabular-nums;padding-right:2px}
+html.look-new .dial{margin:0 auto -14px}
+html.look-new .dial .sl.next{stroke:var(--sleep);opacity:.4;stroke-dasharray:none;stroke-width:20;stroke-linecap:round}
+html.look-new .card{border-radius:22px}
+html.look-new .nl-tiles{gap:10px}
+html.look-new .nl-tiles .card{padding:14px 14px 10px}
+html.look-new .nl-tiles .label{min-height:20px;align-items:center;flex-wrap:nowrap;white-space:nowrap}
+html.look-new .nl-tiles .pill{padding:1px 7px;line-height:16px}
+html.look-new .nl-tiles .big{margin:6px 0 2px}
+html.look-new .nl-tiles .bar{display:none}
+html.look-new .nx{margin:10px 0 4px;padding:8px 10px;border-radius:14px}
+html.look-new .nx b{font-size:20px;letter-spacing:-.01em}
+html.look-new .nl-tiles .earlier{padding:10px 0 2px}
+html.look-new .nl-acts{margin:10px 0}
+html.look-new .nl-acts .btns{gap:10px}
+html.look-new #todayCard .label{font-size:11.5px;letter-spacing:.05em}
+html.look-new #todayCard .label i{display:none}
+html.look-new .dstats{gap:8px}
+html.look-new .dstats div{background:color-mix(in srgb,var(--sleep) 9%,transparent);border-radius:14px;padding:10px 4px}
+html.look-new .foot{display:none}
+html.look-new .card.lastnight{padding:10px 12px 10px 14px;gap:10px;border-radius:18px;margin-bottom:0}
+html.look-new .lastnight .ii{font-size:18px}
+html.look-new .lastnight b{font-size:14.5px}html.look-new .lastnight span{font-size:12.5px;line-height:1.35}
+html.look-new .lastnight .x{font-size:18px;padding:0 4px}
 </style>
 </head>
 <body>
@@ -1530,7 +1557,7 @@ try{ QUEUE=JSON.parse(localStorage.getItem(QKEY)||'[]')||[]; }catch(e){ QUEUE=[]
 function saveQ(){ try{ localStorage.setItem(QKEY,JSON.stringify(QUEUE)); }catch(e){} }
 function withQueue(data){ if(!QUEUE.length||!data)return data; var d=JSON.parse(JSON.stringify(data));
   QUEUE.forEach(function(q){ d.rows.push([q[0],q[0].substr(11,5)+' '+q[1]]); }); return d; }
-function syncLabel(){ if(QUEUE.length) setSync('busy',QUEUE.length+' waiting to save'); else setSync('', 'Updated '+hm(now())); }
+function syncLabel(){ if(QUEUE.length) setSync('busy',QUEUE.length+' waiting to save'); else setSync('', (document.documentElement.classList.contains('look-new')?'':'Updated ')+hm(now())); }
 function apply(data){
   DATA=data; skew=parseLocal(data.now)-Date.now(); M=build(withQueue(data)); render(); syncLabel();
 }
@@ -1796,7 +1823,7 @@ function renderLastNight(n){
     for(var i=1;i<pts.length;i++)mx=Math.max(mx,pts[i]-pts[i-1]); });
   var awake=(last.end-bed)-slept;
   c.hidden=false;
-  c.innerHTML='<div class="ii">🌙</div><div><b>Last night: '+dur(slept,true)+' of sleep</b><span>'+hm(bed)+'–'+hm(last.end)+' · '+feeds.length+' feed'+(feeds.length===1?'':'s')+' · longest stretch '+dur(mx,true)+
+  c.innerHTML='<div class="ii">🌙</div><div><b>Last night: '+dur(slept,true)+' of sleep</b><span>'+hm(bed)+'–'+hm(last.end)+' · '+feeds.length+' feed'+(feeds.length===1?'':'s')+' · longest '+dur(mx,true)+
     (awake>=20*MIN?' · awake '+dur(awake,true)+' in the night':'')+'</span></div>'+
     '<button class="x" onclick="event.stopPropagation();hideLastNight(\''+last.end+'\')" aria-label="Hide">×</button>';
 }
@@ -1880,11 +1907,11 @@ function renderDial(n){
           :mk(ps,'sun '+(startExact?'solid':'est'),sun,(startExact?'':'≈ ')+hm(a),'var(--warn)')+mk(pe,'moon est',moon,'≈ '+hm(b),'var(--sleep)');
   // middle: what comes next
   var L='',B='',Sb='',cc='';
-  if(asleep){ var k=M.curKind(n); L=k==='Night'?'Sleeping':'Napping'; B=hmDur(n-M.since); Sb='since '+hm(M.since)+(nf&&nf.t>n?' · feed ≈ '+hm(nf.t):''); }
+  if(asleep){ var k=M.curKind(n); L=k==='Night'?'Sleeping':'Napping'; B=hmDur(n-M.since); Sb='since '+hm(M.since); }
   else if(M.state==='Awake'&&!night&&M.nextSleep){
     var d=M.nextSleep-n, wd=M.nextSleep-S.windDown*MIN;
-    if(d>0){ L=M.isBedtime?'Bedtime in':'Nap in'; B=hmDur(d); Sb='near '+hm(M.nextSleep)+' · awake '+dur(n-M.since,true); if(n>=wd)cc='warn'; }
-    else { L=M.isBedtime?'Bedtime':'Nap time'; B=d>-5*MIN?'Now':'+'+hmDur(-d); Sb='was due '+hm(M.nextSleep)+' · awake '+dur(n-M.since,true); cc=n>=M.nextSleep+15*MIN?'bad':'warn'; }
+    if(d>0){ L=M.isBedtime?'Bedtime in':'Nap in'; B=hmDur(d); Sb='around '+hm(M.nextSleep); if(n>=wd)cc='warn'; }
+    else { L=M.isBedtime?'Bedtime':'Nap time'; B=d>-5*MIN?'Now':'+'+hmDur(-d); Sb='was due '+hm(M.nextSleep); cc=n>=M.nextSleep+15*MIN?'bad':'warn'; }
   } else if(M.state==='Awake'){ L='Awake'; B=hmDur(n-M.since); Sb=night?'night waking':'since '+hm(M.since); }
   else { L='Today'; B='–'; Sb='tap a button to start'; }
   h+='<div class="ctr '+cc+'"><div class="l">'+L+'</div><div class="b">'+B+'</div><div class="s">'+Sb+'</div></div>';
