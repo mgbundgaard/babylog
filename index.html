@@ -1915,16 +1915,28 @@ function nxRel(t,n){ var d=t-n; if(d>2*MIN) return 'in '+dur(d,true); if(d>-5*MI
 function nxBox(cls,lab,t,n,est){ var d=t-n; return '<div class="nx '+cls+(d<=-5*MIN?' late':d<=2*MIN?' due':'')+'"><span>'+lab+'</span><b>'+(est?'≈ ':'')+hm(t)+'</b><em>'+nxRel(t,n)+'</em></div>'; }
 function shortTiles(n,lf,nf){
   if(lf) $('feedSub').innerHTML='<b>'+hm(lf.start)+'</b>'+(lf.side?' · '+lf.side:'')+(nf?nxBox('f',nf.afterNap?'Next · after nap':'Next feed',nf.t,n,true):'');
-  var ss=$('sleepSub');
-  if(M.state==='Asleep'){ ss.innerHTML='since <b>'+hm(M.since)+'</b>';
-    if(M.curKind(n)==='Night'){ // expected wake-up: same estimate as the dial's sun
-      var ws=M.wakes.filter(function(w){return w.kind==='Morning'&&w.start>=n-7*DAY}).map(function(w){return minsOfDay(w.start)}).sort(function(x,y){return x-y});
-      var k=Math.floor(ws.length/2), wm=ws.length?(ws.length%2?ws[k]:(ws[k-1]+ws[k])/2):toMin(M.S.nightEnd)+30;
-      var d0=startOfDay(n), wt=(minsOfDay(n)<12*60?d0:d0+DAY)+wm*MIN;
-      ss.innerHTML+=nxBox('s',"Wakes",wt,n,true).replace(/ (due|late)"/,'"').replace(/<em>[^<]*late<\/em>/,'<em>any time now</em>'); } }
-  else if(M.state==='Awake'){
-    if(M.kindNow==='Night'||M.kindNow==='Evening') ss.innerHTML='since <b>'+hm(M.since)+'</b> · night waking';
-    else ss.innerHTML='woke <b>'+hm(M.since)+'</b>'+(M.nextSleep?nxBox('s',M.isBedtime?'Bedtime':'Next nap',M.nextSleep,n,true):'');
+  // the ring already shows the next nap / how long he's slept, so this tile sums up the day (or the night) instead
+  var ss=$('sleepSub'), d0=startOfDay(n), asleep=M.state==='Asleep', ck=asleep?M.curKind(n):'';
+  var night=(asleep&&ck==='Night')||(!asleep&&(M.kindNow==='Night'||M.kindNow==='Evening'));
+  $('sleepPill').hidden=true;
+  if(night&&asleep){
+    var nf=M.feeds.filter(function(f){return f.start>=M.since}).length;
+    $('sleepLabel').textContent='Tonight'; $('sleepBig').innerHTML=bigDur(n-M.since);
+    var pts=[M.since].concat(M.feeds.filter(function(f){return f.start>=M.since}).map(function(f){return f.start}),[n]), st=0;
+    for(var i=1;i<pts.length;i++) st=Math.max(st,pts[i]-pts[i-1]);
+    ss.innerHTML='since <b>'+hm(M.since)+'</b> · '+(nf?nf+' feed'+(nf>1?'s':''):'no feeds yet')+
+      '<div class="nx s"><span>Longest stretch</span><b>'+dur(st,true)+'</b></div>';
+  } else if(night){
+    $('sleepLabel').textContent='Awake'; $('sleepBig').innerHTML=bigDur(n-M.since); ss.innerHTML='since <b>'+hm(M.since)+'</b> · night waking';
+  } else {
+    var naps=M.sleeps.filter(function(x){return isNap(x)&&x.start>=d0&&x.start<n}).map(function(x){return x.dur});
+    if(asleep&&ck==='Nap') naps.push(n-M.since);
+    var tot=naps.reduce(function(t,x){return t+x},0), lg=naps.length?Math.max.apply(null,naps):0;
+    $('sleepLabel').textContent='Naps today'; $('sleepBig').innerHTML=naps.length?bigDur(tot):'0';
+    var days=[]; for(var k=1;k<=7;k++){ var a0=d0-k*DAY, t=M.sleeps.filter(function(x){return isNap(x)&&x.start>=a0&&x.start<a0+DAY}).reduce(function(q,x){return q+x.dur},0); if(t>0)days.push(t); }
+    var usual=days.length>=3?days.reduce(function(q,x){return q+x},0)/days.length:0;
+    ss.innerHTML=(naps.length?naps.length+' nap'+(naps.length>1?'s':'')+' · longest <b>'+dur(lg,true)+'</b>':'none yet today')+
+      (usual?'<div class="nx s"><span>A usual day</span><b>≈ '+dur(usual,true)+'</b><em>of naps</em></div>':'');
   }
 }
 function hmDur(ms){ if(ms<0)ms=0; var m=Math.floor(ms/MIN), h=Math.floor(m/60); m=m%60; return h?h+'<small>h</small>'+pad(m):m+'<small>min</small>'; }
@@ -1977,7 +1989,7 @@ function renderDial(n){
   if(asleep){ var k=M.curKind(n); L=k==='Night'?'Sleeping':'Napping'; B=hmDur(n-M.since); Sb='since '+hm(M.since); }
   else if(M.state==='Awake'&&!night&&M.nextSleep){
     var d=M.nextSleep-n, wd=M.nextSleep-S.windDown*MIN;
-    if(d>0){ L=M.isBedtime?'Bedtime in':'Nap in'; B=hmDur(d); Sb='around '+hm(M.nextSleep); if(n>=wd)cc='warn'; }
+    if(d>0){ L=M.isBedtime?'Bedtime in':'Nap in'; B=hmDur(d); Sb='around '+hm(M.nextSleep)+' · awake '+dur(n-M.since,true); if(n>=wd)cc='warn'; }
     else { L=M.isBedtime?'Bedtime':'Nap time'; B=d>-5*MIN?'Now':'+'+hmDur(-d); Sb='was due '+hm(M.nextSleep); cc=n>=M.nextSleep+15*MIN?'bad':'warn'; }
   } else if(M.state==='Awake'){ L='Awake'; B=hmDur(n-M.since); Sb=night?'night waking':'since '+hm(M.since); }
   else { L='Today'; B='–'; Sb='tap a button to start'; }
