@@ -422,6 +422,68 @@ html.look-new .card.lastnight{padding:10px 12px 10px 14px;gap:10px;border-radius
 html.look-new .lastnight .ii{font-size:18px}
 html.look-new .lastnight b{font-size:14.5px}html.look-new .lastnight span{font-size:12.5px;line-height:1.35}
 html.look-new .lastnight .x{font-size:18px;padding:0 4px}
+
+/* ---- new look: polish – one calm surface style, fewer colours, no glow ---- */
+html.look-new{--r:20px}
+html.look-new body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+html.look-new:not(.night){--shadow:0 1px 2px rgba(20,24,50,.05),0 6px 20px rgba(20,24,50,.06)}
+@media (prefers-color-scheme: dark){html.look-new:not(.night){--shadow:none;--card:#171A33}}
+html.look-new .card,html.look-new .vit,html.look-new .nl-tiles .card,html.look-new #feedCard,html.look-new #sleepCard{background:var(--card);border:0;box-shadow:var(--shadow);border-radius:var(--r)}
+html.look-new .card.lastnight{background:var(--card)}
+/* labels: quiet sentence case instead of shouting capitals */
+html.look-new .label,html.look-new .nl-tiles .label,html.look-new #todayCard .label{text-transform:none;letter-spacing:0;font-size:13px;font-weight:600;color:var(--muted)}
+html.look-new #feedCard .label{color:var(--feed)} html.look-new #sleepCard .label{color:var(--sleep)}
+html.look-new .nl-tiles .big{font-size:32px;font-weight:650;letter-spacing:-.025em}
+html.look-new .nl-tiles .big small{font-size:15px;font-weight:600;color:var(--muted)}
+html.look-new .nl-tiles .sub{font-size:13px}
+/* "next" inside each tile: a hairline row, not a box in a box */
+html.look-new .nx{background:none!important;outline:0!important;border-top:1px solid var(--line);border-radius:0;margin:10px 0 0;padding:9px 0 0;color:var(--ink)}
+html.look-new .nx span{font-size:12px;font-weight:600;letter-spacing:0;text-transform:none;opacity:1;color:var(--muted)!important}
+html.look-new .nx b{font-size:20px;font-weight:650}
+html.look-new .nx em{font-size:13px;font-weight:600}
+html.look-new .nx.due em{color:var(--warn)!important} html.look-new .nx.late em{color:var(--bad)!important}
+html.look-new .nl-tiles .earlier{opacity:1;color:var(--muted);font-weight:600}
+/* dial: thinner rings, no glow or pulsing */
+html.look-new .dial svg path,html.look-new .dial svg circle{filter:none!important;animation:none!important}
+html.look-new .dial .trk{stroke-width:16;stroke:color-mix(in srgb,var(--ink) 7%,var(--bg))}
+html.look-new .dial .done{stroke-width:16;stroke:color-mix(in srgb,var(--sleep) 18%,var(--bg))}
+html.look-new .dial .sl{stroke-width:16}
+html.look-new .dial .sl.next{opacity:.28}
+html.look-new .dial .fd{fill:var(--feed)}
+html.look-new .dial .fd.next{fill:var(--card);stroke:var(--feed);stroke-width:2}
+html.look-new .dial .mk{width:36px;height:36px;margin:-18px 0 0 -18px;box-shadow:none!important;border-width:1.5px!important;background:var(--card)!important}
+html.look-new .dial .mk{display:flex!important;align-items:center;justify-content:center;padding:0}
+html.look-new .dial .mk svg{position:static;inset:auto;width:18px;height:18px;display:block;margin:0;flex:none;overflow:visible}
+html.look-new .dial .ml{font-size:13px;font-weight:600;margin-top:-6px}
+html.look-new .dial .ctr .l{font-size:15px;font-weight:600}
+html.look-new .dial .ctr .b{font-size:54px;font-weight:650;letter-spacing:-.035em}
+html.look-new .dial .ctr .b small{font-size:20px}
+html.look-new .dial .ctr .s{font-size:14px}
+/* buttons */
+html.look-new .nl-acts .btn{min-height:64px;border-radius:18px;font-size:18px;font-weight:650}
+html.look-new .btn.next,html.look-new .btn.sleepbtn:not(.wake){box-shadow:none!important}
+html.look-new .btn:not(.next):not(.sleepbtn){border:0!important;background:var(--card);box-shadow:var(--shadow);color:var(--feed)}
+html.look-new .btn .tag{top:8px;left:12px;transform:none;background:rgba(255,255,255,.28);color:inherit;font-size:10px;letter-spacing:.04em;padding:2px 6px}
+html.look-new .dialbtn .btn.sleepbtn{min-height:42px;font-size:15px;font-weight:650}
+html.look-new .dialbtn .btn.sleepbtn.wake{background:var(--card);border:1px solid var(--line);color:var(--sleep)}
+/* header */
+html.look-new .gear,html.look-new .moon{width:36px;height:36px;border:0;background:var(--card);box-shadow:var(--shadow);color:var(--muted)}
+html.look-new .top h1{font-size:22px;font-weight:700;letter-spacing:-.02em}
+/* small cards */
+html.look-new .card.lastnight .ii{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;background:var(--sleep-soft);color:var(--sleep)}
+html.look-new .lastnight b{color:var(--ink);font-size:14.5px;font-weight:650}
+html.look-new .lastnight span{color:var(--muted);opacity:1}
+html.look-new .vit .vi{background:var(--warn-soft);color:var(--warn);border-radius:10px}
+html.look-new .vit.done .vi{background:color-mix(in srgb,var(--ok) 16%,var(--card));color:var(--ok)}
+html.look-new .vit .vl{font-size:13px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--muted)}
+html.look-new .vit .vdots{display:none}
+html.look-new .vit .vbtn{background:var(--warn);color:#fff;font-weight:650}
+html.look-new .placeAsk{background:var(--card);box-shadow:var(--shadow);border-radius:var(--r);padding:12px 12px 10px!important;margin:0 0 10px!important}
+html.look-new .placeAsk>*:first-child{font-size:13px;font-weight:600;color:var(--muted)}
+html.look-new .dstats div{background:var(--bg);border-radius:12px}
+html.look-new .tabs{background:color-mix(in srgb,var(--card) 86%,transparent);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);border:1px solid var(--line);box-shadow:0 6px 24px rgba(0,0,0,.14)}
+html.look-new .tabs button.on{background:color-mix(in srgb,var(--sleep) 14%,transparent);color:var(--sleep)}
+html.night.look-new .vit .vbtn{background:var(--warn-soft);color:var(--warn)}
 </style>
 </head>
 <body>
@@ -1216,7 +1278,7 @@ function build(data){
 function render(){
   if(!M)return; var n=now(), S=M.S;
   var h=new Date(n).getHours();
-  $('hello').textContent=h<5?'Good night':h<11?'Good morning':h<17?'Good afternoon':h<22?'Good evening':'Good night';
+  $('hello').textContent=h<5?'Good night':h<12?'Good morning':h<17?'Good afternoon':h<22?'Good evening':'Good night';
   var aw=Math.floor((n-parseLocal(S.birth+'T00:00:00'))/(7*DAY)); $('ageTxt').textContent=aw>=0?aw+' weeks old':'';
 
   // feed card
@@ -1827,7 +1889,7 @@ function renderLastNight(n){
     for(var i=1;i<pts.length;i++)mx=Math.max(mx,pts[i]-pts[i-1]); });
   var awake=(last.end-bed)-slept;
   c.hidden=false;
-  c.innerHTML='<div class="ii">🌙</div><div><b>Last night: '+dur(slept,true)+' of sleep</b><span>'+hm(bed)+'–'+hm(last.end)+' · '+feeds.length+' feed'+(feeds.length===1?'':'s')+' · longest '+dur(mx,true)+
+  c.innerHTML='<div class="ii">'+(window.LOOK==='new'?'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>':'🌙')+'</div><div><b>Last night: '+dur(slept,true)+' of sleep</b><span>'+hm(bed)+'–'+hm(last.end)+' · '+feeds.length+' feed'+(feeds.length===1?'':'s')+' · longest '+dur(mx,true)+
     (awake>=20*MIN?' · awake '+dur(awake,true)+' in the night':'')+'</span></div>'+
     '<button class="x" onclick="event.stopPropagation();hideLastNight(\''+last.end+'\')" aria-label="Hide">×</button>';
 }
@@ -1841,12 +1903,12 @@ function newLayout(){
   var tiles=document.createElement('div'); tiles.className='nl-tiles';
   var acts=document.createElement('div'); acts.className='nl-acts';
   sec.insertBefore(tiles,fc); tiles.appendChild(fc); tiles.appendChild(sc);
-  acts.appendChild($('placeAsk')); acts.appendChild(fc.querySelector('.btns')); var sb=sc.querySelector('.btns'); sb.className='btns dialbtn'; $('dial').parentNode.insertBefore(sb,$('dial').nextSibling);
+  acts.appendChild(fc.querySelector('.btns')); acts.appendChild($('placeAsk')); var sb=sc.querySelector('.btns'); sb.className='btns dialbtn'; $('dial').parentNode.insertBefore(sb,$('dial').nextSibling);
   var dw=document.createElement('div'); dw.className='dialwrap'; $('dial').parentNode.insertBefore(dw,$('dial')); dw.appendChild($('dial')); dw.appendChild(sb);
   sec.insertBefore(acts,$('todayCard'));
   sec.insertBefore($('vitCard'),$('todayCard'));
-  var e=fc.querySelectorAll('.earlier'); if(e[0]) e[0].textContent='＋ Earlier';
-  e=sc.querySelectorAll('.earlier'); if(e[0]) e[0].textContent='＋ Earlier';
+  var e=fc.querySelectorAll('.earlier'); if(e[0]) e[0].textContent='+ Earlier';
+  e=sc.querySelectorAll('.earlier'); if(e[0]) e[0].textContent='+ Earlier';
 }
 // new look: short tile text + a clear "next" line in each tile
 function nxRel(t,n){ var d=t-n; if(d>2*MIN) return 'in '+dur(d,true); if(d>-5*MIN) return 'now'; return dur(-d,true)+' late'; }
@@ -1928,9 +1990,9 @@ function vitToday(n){ var d0=startOfDay(n); return M.vits.filter(function(v){ret
 function renderVit(n){
   var c=$('vitCard'), S=M.S; if(S.vitOn===false){ c.hidden=true; return; } c.hidden=false;
   var td=vitToday(n), late=minsOfDay(n)>=toMin(S.vitTime||'10:00');
-  if(td.length){ c.className='vit done'; $('vitI').textContent='✓'; $('vitT').textContent='Given at '+hm(td[0].t);
+  if(td.length){ c.className='vit done'; if(window.LOOK==='new')$('vitI').innerHTML='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'; else $('vitI').textContent='✓'; $('vitT').textContent='Given at '+hm(td[0].t);
     $('vitS').textContent=(td.length>1?'logged '+td.length+' times · ':'')+'tap to change'; }
-  else { c.className='vit'+(late?' todo':''); $('vitI').textContent='💊'; $('vitT').textContent='Not given yet';
+  else { c.className='vit'+(late?' todo':''); if(window.LOOK==='new')$('vitI').innerHTML='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8.5" width="18" height="7" rx="3.5" transform="rotate(-40 12 12)"/><path d="M9.3 8.8l5.4 6.4" /></svg>'; else $('vitI').textContent='💊'; $('vitT').textContent='Not given yet';
     $('vitS').textContent=late?'It\'s past '+(S.vitTime||'10:00'):'Reminder at '+(S.vitTime||'10:00'); }
   var d0=startOfDay(n), h='';
   for(var i=6;i>=0;i--){ var a=new Date(d0); a.setDate(a.getDate()-i); var t=a.getTime(), b=new Date(a); b.setDate(b.getDate()+1);
