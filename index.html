@@ -484,6 +484,51 @@ html.look-new .dstats div{background:var(--bg);border-radius:12px}
 html.look-new .tabs{background:color-mix(in srgb,var(--card) 86%,transparent);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);border:1px solid var(--line);box-shadow:0 6px 24px rgba(0,0,0,.14)}
 html.look-new .tabs button.on{background:color-mix(in srgb,var(--sleep) 14%,transparent);color:var(--sleep)}
 html.night.look-new .vit .vbtn{background:var(--warn-soft);color:var(--warn)}
+
+/* ---- new look: professional pass ---- */
+/* one rhythm: 12px gaps, 16px inner padding */
+html.look-new .wrap>section>*{margin-bottom:12px}
+html.look-new .nl-tiles{gap:12px;margin-bottom:12px}
+html.look-new .nl-tiles .card{padding:16px 16px 14px}
+html.look-new .nl-tiles .earlier{display:none}
+html.look-new .card,html.look-new .vit,html.look-new .placeAsk{margin-bottom:12px}
+/* header: just the time, no badge */
+html.look-new .top .sync{font-size:13px;color:var(--muted);font-weight:500;background:none}
+html.look-new .top .age{font-size:14px;color:var(--muted);font-weight:500;margin-top:2px}
+/* feed buttons: side name with a quiet "next side" line under it */
+html.look-new .nl-acts .btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+html.look-new .btn .tag{position:static;order:1;transform:none;background:none;padding:0;font-size:12px;font-weight:600;letter-spacing:0;text-transform:none;opacity:.8}
+html.look-new .nl-acts .btns{margin-bottom:8px}
+/* one quiet row for logging something you forgot */
+.nl-earlier{display:flex;justify-content:center;gap:6px;margin:0 0 12px}
+.nl-earlier button{border:0;background:none;font:inherit;font-size:13.5px;font-weight:600;color:var(--muted);padding:6px 10px;border-radius:10px}
+.nl-earlier button:active{background:var(--card)}
+.nl-earlier i{width:1px;background:var(--line);margin:6px 0}
+/* vitamin D: calm until it's late */
+html.look-new .vit{padding:12px 12px 12px 14px}
+html.look-new .vit .vt b{color:var(--ink)!important;font-weight:600}
+html.look-new .vit .vl{color:var(--muted)}
+html.look-new .vit .vbtn{background:var(--bg);color:var(--ink);border-radius:12px;padding:9px 14px;font-size:14px}
+html.look-new .vit.todo .vbtn{background:var(--warn);color:#fff}
+html.look-new .vit.todo .vt b{color:var(--warn)!important}
+/* last 24 h: flat numbers with dividers instead of four little boxes */
+html.look-new .dstats{gap:0;margin:16px 0 2px}
+html.look-new .dstats div{background:none!important;border-radius:0;padding:2px 4px;border-left:1px solid var(--line)}
+html.look-new .dstats div:first-child{border-left:0}
+html.look-new .dstats b{font-size:17px;font-weight:650}
+html.look-new .dstats span{font-size:12px;font-weight:500}
+/* dial details */
+html.look-new .dial .ml{font-weight:600;color:var(--muted)!important}
+html.look-new .dial .mk.sun{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 70%,transparent)!important}
+html.look-new .dial .mk.moon{color:var(--sleep);border-color:color-mix(in srgb,var(--sleep) 70%,transparent)!important}
+html.look-new .dial .ctr .s{color:var(--muted)}
+html.look-new .lastnight .x{color:var(--muted);opacity:.7}
+/* nap place: one compact row of chips */
+html.look-new .placeAsk{text-align:left;padding:12px 14px!important}
+html.look-new .pa-l{font-size:13px;font-weight:600;color:var(--muted)}
+html.look-new .pa-b{justify-content:flex-start;gap:6px;margin-top:8px}
+html.look-new .pa-b button{min-width:0;padding:8px 13px;border-radius:999px;font-size:14px;font-weight:600}
+html.look-new .pa-b button.skip{margin-left:auto;padding:8px 4px;font-size:13.5px}
 </style>
 </head>
 <body>
@@ -1903,7 +1948,9 @@ function newLayout(){
   var tiles=document.createElement('div'); tiles.className='nl-tiles';
   var acts=document.createElement('div'); acts.className='nl-acts';
   sec.insertBefore(tiles,fc); tiles.appendChild(fc); tiles.appendChild(sc);
-  acts.appendChild(fc.querySelector('.btns')); acts.appendChild($('placeAsk')); var sb=sc.querySelector('.btns'); sb.className='btns dialbtn'; $('dial').parentNode.insertBefore(sb,$('dial').nextSibling);
+  acts.appendChild(fc.querySelector('.btns'));
+  var er=document.createElement('div'); er.className='nl-earlier'; er.innerHTML='<button onclick="openEarlier(\'feed\')">+ Earlier feed</button><i></i><button onclick="openEarlier(\'sleep\')">+ Earlier sleep</button>'; acts.appendChild(er);
+  acts.appendChild($('placeAsk')); var sb=sc.querySelector('.btns'); sb.className='btns dialbtn'; $('dial').parentNode.insertBefore(sb,$('dial').nextSibling);
   var dw=document.createElement('div'); dw.className='dialwrap'; $('dial').parentNode.insertBefore(dw,$('dial')); dw.appendChild($('dial')); dw.appendChild(sb);
   sec.insertBefore(acts,$('todayCard'));
   sec.insertBefore($('vitCard'),$('todayCard'));
@@ -1936,7 +1983,7 @@ function shortTiles(n,lf,nf){
     var days=[]; for(var k=1;k<=7;k++){ var a0=d0-k*DAY, t=M.sleeps.filter(function(x){return isNap(x)&&x.start>=a0&&x.start<a0+DAY}).reduce(function(q,x){return q+x.dur},0); if(t>0)days.push(t); }
     var usual=days.length>=3?days.reduce(function(q,x){return q+x},0)/days.length:0;
     ss.innerHTML=(naps.length?naps.length+' nap'+(naps.length>1?'s':'')+' · longest <b>'+dur(lg,true)+'</b>':'none yet today')+
-      (usual?'<div class="nx s"><span>A usual day</span><b>≈ '+dur(usual,true)+'</b><em>of naps</em></div>':'');
+      (usual?'<div class="nx s"><span>Usual per day</span><b>≈ '+dur(usual,true)+'</b></div>':'');
   }
 }
 function hmDur(ms){ if(ms<0)ms=0; var m=Math.floor(ms/MIN), h=Math.floor(m/60); m=m%60; return h?h+'<small>h</small>'+pad(m):m+'<small>min</small>'; }
@@ -2004,7 +2051,7 @@ function renderVit(n){
   var td=vitToday(n), late=minsOfDay(n)>=toMin(S.vitTime||'10:00');
   if(td.length){ c.className='vit done'; if(window.LOOK==='new')$('vitI').innerHTML='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'; else $('vitI').textContent='✓'; $('vitT').textContent='Given at '+hm(td[0].t);
     $('vitS').textContent=(td.length>1?'logged '+td.length+' times · ':'')+'tap to change'; }
-  else { c.className='vit'+(late?' todo':''); if(window.LOOK==='new')$('vitI').innerHTML='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8.5" width="18" height="7" rx="3.5" transform="rotate(-40 12 12)"/><path d="M9.3 8.8l5.4 6.4" /></svg>'; else $('vitI').textContent='💊'; $('vitT').textContent='Not given yet';
+  else { c.className='vit'+(late?' todo':''); if(window.LOOK==='new')$('vitI').innerHTML='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><g transform="rotate(-45 12 12)"><rect x="3.5" y="8" width="17" height="8" rx="4"/><path d="M12 8v8"/></g></svg>'; else $('vitI').textContent='💊'; $('vitT').textContent='Not given yet';
     $('vitS').textContent=late?'It\'s past '+(S.vitTime||'10:00'):'Reminder at '+(S.vitTime||'10:00'); }
   var d0=startOfDay(n), h='';
   for(var i=6;i>=0;i--){ var a=new Date(d0); a.setDate(a.getDate()-i); var t=a.getTime(), b=new Date(a); b.setDate(b.getDate()+1);
