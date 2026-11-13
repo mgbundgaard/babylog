@@ -322,6 +322,17 @@ h2{font-size:15px;margin:18px 4px 8px;color:var(--muted);font-weight:700;text-tr
 }
 html.look-new body{background:radial-gradient(520px 460px at 50% 250px,color-mix(in srgb,var(--sleep) 16%,transparent),transparent 72%) no-repeat,var(--bg)}
 html.look-new .card,html.look-new .vit{box-shadow:none;border:1px solid color-mix(in srgb,var(--sleep) 16%,transparent);background:color-mix(in srgb,var(--card) 82%,transparent)}
+html.look-new .vit{padding:8px 12px;border-radius:16px;gap:10px;margin-bottom:10px}
+html.look-new .vit .vi{width:30px;height:30px;border-radius:9px;font-size:16px}
+html.look-new .vit.done .vi{font-size:17px}
+html.look-new .vit .vt{display:flex;align-items:center;flex-wrap:wrap;gap:2px 8px}
+html.look-new .vit .vl{display:inline;font-size:10.5px}
+html.look-new .vit .vt b{display:inline;font-size:14.5px}
+html.look-new .vit .vt span{display:none}
+html.look-new .vit .vdots{margin:0 0 0 auto;gap:3px}
+html.look-new .vit .vdots i{width:7px;height:7px}
+html.look-new .vit .vdots em{display:none}
+html.look-new .vit .vbtn{padding:7px 11px;font-size:13.5px;border-radius:10px}
 html.look-new .card.lastnight{background:color-mix(in srgb,var(--sleep) 12%,transparent)}
 html.look-new .gear,html.look-new .moon{width:40px;height:40px;border-radius:50%;border:1px solid color-mix(in srgb,var(--sleep) 35%,transparent);display:grid;place-items:center;padding:0}
 html.look-new .top .sync{padding-right:6px;white-space:nowrap}
@@ -1790,6 +1801,7 @@ function newLayout(){
   sec.insertBefore(tiles,fc); tiles.appendChild(fc); tiles.appendChild(sc);
   acts.appendChild($('placeAsk')); acts.appendChild(fc.querySelector('.btns')); acts.appendChild(sc.querySelector('.btns'));
   sec.insertBefore(acts,$('todayCard'));
+  sec.insertBefore($('vitCard'),$('todayCard'));
   var e=fc.querySelectorAll('.earlier'); if(e[0]) e[0].textContent='＋ Earlier feed';
   e=sc.querySelectorAll('.earlier'); if(e[0]) e[0].textContent='＋ Earlier sleep';
 }
