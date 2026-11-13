@@ -343,9 +343,10 @@ html.look-new .top h1{font-size:21px;white-space:nowrap}
 .dial .done{fill:none;stroke:color-mix(in srgb,var(--sleep) 24%,var(--bg));stroke-width:28;stroke-linecap:round}
 .dial .sl{fill:none;stroke:var(--sleep);stroke-width:20;stroke-linecap:round}
 .dial .sl.nap{opacity:.85}
-.dial .sl.next{opacity:.75;stroke-dasharray:3 6;stroke-width:16;stroke-linecap:butt}
+.dial .sl.next{opacity:1;stroke:color-mix(in srgb,var(--sleep) 70%,#fff);stroke-dasharray:7 4;stroke-width:22;stroke-linecap:butt;animation:dpulse 2s ease-in-out infinite}
 .dial .fd{fill:var(--feed)}
-.dial .fd.next{fill:none;stroke:var(--feed);stroke-width:2;stroke-dasharray:3 2.5}
+.dial .fd.next{fill:color-mix(in srgb,var(--feed) 30%,transparent);stroke:var(--feed);stroke-width:2.5;animation:dpulse 2s ease-in-out infinite}
+@keyframes dpulse{50%{opacity:.45}}
 .dial .nowo{fill:var(--ink)}.dial .nowi{fill:var(--bg)}
 .dial .mk{position:absolute;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;display:grid;place-items:center;font-size:20px;line-height:1}
 .dial .mk.sun{background:color-mix(in srgb,var(--warn) 16%,var(--bg));border:2px solid var(--warn);color:var(--warn);box-shadow:0 0 16px color-mix(in srgb,var(--warn) 40%,transparent)}
@@ -369,6 +370,15 @@ html.look-new #sleepCard{background:color-mix(in srgb,var(--sleep) 9%,var(--card
 .nl-tiles .sub{font-size:12.5px;line-height:1.35}
 .nl-tiles .bar{height:5px;margin:8px 0 2px}
 .nl-tiles .earlier{margin:auto 0 0;padding:8px 0 2px;font-size:13px;text-align:left}
+.nl-tiles .earlier{font-size:12px;opacity:.75}
+.nx{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 6px;margin:8px 0 2px;padding:7px 9px;border-radius:12px;color:var(--ink)}
+.nx span{width:100%;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.85}
+.nx b{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums}
+.nx em{font-style:normal;font-size:12.5px;font-weight:600;opacity:.85}
+.nx.f{background:color-mix(in srgb,var(--feed) 22%,transparent)}.nx.f span,.nx.f em{color:var(--feed)}
+.nx.s{background:color-mix(in srgb,var(--sleep) 22%,transparent)}.nx.s span,.nx.s em{color:var(--sleep)}
+.nx.due{outline:1.5px solid var(--warn)}.nx.due em{color:var(--warn)}
+.nx.late{outline:1.5px solid var(--bad)}.nx.late em{color:var(--bad)}
 .nl-acts{margin:10px 0 10px}
 .nl-acts .btns{margin-top:0;margin-bottom:10px}
 html.look-new .nl-acts .btn{min-height:70px;font-size:19px;border-radius:22px}
@@ -1220,6 +1230,7 @@ function render(){
     $('sleepSub').textContent='Tap the button when he falls asleep'; btn.textContent='He fell asleep'; btn.className='btn sleepbtn';
   }
 
+  if(document.documentElement.classList.contains('look-new')) shortTiles(n,lf,typeof nf!=='undefined'?nf:null);
   // ask where the last nap was
   var ls=M.sleeps[M.sleeps.length-1], pa=$('placeAsk');
   if(M.state==='Awake'&&ls&&ls.kind==='Nap'&&!ls.place&&n-ls.end<3*HOUR&&!PLACE_SKIP[ls.start]&&ls.a&&ls.a.row){
@@ -1802,8 +1813,20 @@ function newLayout(){
   acts.appendChild($('placeAsk')); acts.appendChild(fc.querySelector('.btns')); acts.appendChild(sc.querySelector('.btns'));
   sec.insertBefore(acts,$('todayCard'));
   sec.insertBefore($('vitCard'),$('todayCard'));
-  var e=fc.querySelectorAll('.earlier'); if(e[0]) e[0].textContent='＋ Earlier feed';
-  e=sc.querySelectorAll('.earlier'); if(e[0]) e[0].textContent='＋ Earlier sleep';
+  var e=fc.querySelectorAll('.earlier'); if(e[0]) e[0].textContent='＋ Earlier';
+  e=sc.querySelectorAll('.earlier'); if(e[0]) e[0].textContent='＋ Earlier';
+}
+// new look: short tile text + a clear "next" line in each tile
+function nxRel(t,n){ var d=t-n; if(d>2*MIN) return 'in '+dur(d,true); if(d>-5*MIN) return 'now'; return dur(-d,true)+' late'; }
+function nxBox(cls,lab,t,n,est){ var d=t-n; return '<div class="nx '+cls+(d<=-5*MIN?' late':d<=2*MIN?' due':'')+'"><span>'+lab+'</span><b>'+(est?'≈ ':'')+hm(t)+'</b><em>'+nxRel(t,n)+'</em></div>'; }
+function shortTiles(n,lf,nf){
+  if(lf) $('feedSub').innerHTML='<b>'+hm(lf.start)+'</b>'+(lf.side?' · '+lf.side:'')+(nf?nxBox('f',nf.afterNap?'Next · after nap':'Next feed',nf.t,n,true):'');
+  var ss=$('sleepSub');
+  if(M.state==='Asleep') ss.innerHTML='since <b>'+hm(M.since)+'</b>';
+  else if(M.state==='Awake'){
+    if(M.kindNow==='Night'||M.kindNow==='Evening') ss.innerHTML='since <b>'+hm(M.since)+'</b> · night waking';
+    else ss.innerHTML='woke <b>'+hm(M.since)+'</b>'+(M.nextSleep?nxBox('s',M.isBedtime?'Bedtime':'Next nap',M.nextSleep,n,true):'');
+  }
 }
 function hmDur(ms){ if(ms<0)ms=0; var m=Math.floor(ms/MIN), h=Math.floor(m/60); m=m%60; return h?h+'<small>h</small>'+pad(m):m+'<small>min</small>'; }
 function renderDial(n){
@@ -1841,7 +1864,7 @@ function renderDial(n){
     var ns0=Math.max(M.nextSleep,n); h+=arc(ns0,ns0+nl,'sl next'); }
   M.feeds.forEach(function(f){ if(f.start>=a&&f.start<=b){ var p=pt(f.start,R-27); h+='<circle class="fd" cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="4.5"></circle>'; } });
   var lf=M.feeds[M.feeds.length-1], nf=lf?nextFeedAt(lf,n):null;
-  if(nf&&nf.t>n&&nf.t<=b){ var p=pt(nf.t,R-27); h+='<circle class="fd next" cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="6"></circle>'; }
+  if(nf&&nf.t>n&&nf.t<=b){ var p=pt(nf.t,R-27); h+='<circle class="fd next" cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="9"></circle>'; }
   var np=pt(n,R); h+='<circle class="nowo" cx="'+np[0].toFixed(1)+'" cy="'+np[1].toFixed(1)+'" r="8.5" filter="url(#dglow)"></circle><circle class="nowi" cx="'+np[0].toFixed(1)+'" cy="'+np[1].toFixed(1)+'" r="3.5"></circle></svg>';
   // start and end marks
   var sun='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 16a7 7 0 0 1 14 0M2 19h20M12 4v3M4.9 8.9l2 2M19.1 8.9l-2 2"/></svg>';
