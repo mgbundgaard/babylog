@@ -1827,7 +1827,7 @@ function shortTiles(n,lf,nf){
       var ws=M.wakes.filter(function(w){return w.kind==='Morning'&&w.start>=n-7*DAY}).map(function(w){return minsOfDay(w.start)}).sort(function(x,y){return x-y});
       var k=Math.floor(ws.length/2), wm=ws.length?(ws.length%2?ws[k]:(ws[k-1]+ws[k])/2):toMin(M.S.nightEnd)+30;
       var d0=startOfDay(n), wt=(minsOfDay(n)<12*60?d0:d0+DAY)+wm*MIN;
-      ss.innerHTML+=nxBox('s',"Wakes",wt,n,true); } }
+      ss.innerHTML+=nxBox('s',"Wakes",wt,n,true).replace(/ (due|late)"/,'"').replace(/<em>[^<]*late<\/em>/,'<em>any time now</em>'); } }
   else if(M.state==='Awake'){
     if(M.kindNow==='Night'||M.kindNow==='Evening') ss.innerHTML='since <b>'+hm(M.since)+'</b> · night waking';
     else ss.innerHTML='woke <b>'+hm(M.since)+'</b>'+(M.nextSleep?nxBox('s',M.isBedtime?'Bedtime':'Next nap',M.nextSleep,n,true):'');
