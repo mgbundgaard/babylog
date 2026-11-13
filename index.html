@@ -414,6 +414,10 @@ html.look-new #todayCard .label i{display:none}
 html.look-new .dstats{gap:8px}
 html.look-new .dstats div{background:color-mix(in srgb,var(--sleep) 9%,transparent);border-radius:14px;padding:10px 4px}
 html.look-new .foot{display:none}
+html.look-new .dialwrap{position:relative;max-width:330px;margin:0 auto}
+html.look-new .dialbtn{position:absolute;left:50%;top:70%;transform:translate(-50%,-50%);width:34%;margin:0;display:block;z-index:2}
+html.look-new .dialbtn .btn.sleepbtn,html.night .dialbtn #sleepBtn{min-height:46px;font-size:15px;padding:0 10px;border-radius:999px;width:100%;white-space:nowrap}
+html.look-new .dialbtn .btn.sleepbtn.wake{background:color-mix(in srgb,var(--sleep) 22%,var(--bg));border:1px solid color-mix(in srgb,var(--sleep) 45%,transparent)}
 html.look-new .card.lastnight{padding:10px 12px 10px 14px;gap:10px;border-radius:18px;margin-bottom:0}
 html.look-new .lastnight .ii{font-size:18px}
 html.look-new .lastnight b{font-size:14.5px}html.look-new .lastnight span{font-size:12.5px;line-height:1.35}
@@ -1236,12 +1240,12 @@ function render(){
     $('sleepLabel').textContent='Asleep for'; $('sleepBig').innerHTML=bigDur(n-M.since);
     $('sleepSub').innerHTML='Fell asleep at <b>'+hm(M.since)+'</b>';
     sp.className='pill ok'; sp.textContent=M.curKind(n); sp.hidden=false;
-    btn.textContent='He woke up'; btn.className='btn sleepbtn wake';
+    btn.textContent=document.documentElement.classList.contains('look-new')?'Woke up':'He woke up'; btn.className='btn sleepbtn wake';
     var nightNow=M.curKind(n)==='Night'&&M.isNight(n);
     if(nightNow) $('sleepSub').innerHTML='Fell asleep at <b>'+hm(M.since)+'</b> · night feeds: just tap the side above';
   } else if(M.state==='Awake'){
     $('sleepLabel').textContent='Awake for'; $('sleepBig').innerHTML=bigDur(n-M.since);
-    btn.textContent='He fell asleep'; btn.className='btn sleepbtn';
+    btn.textContent=document.documentElement.classList.contains('look-new')?'Fell asleep':'He fell asleep'; btn.className='btn sleepbtn';
     if(M.kindNow==='Night'){ $('sleepSub').textContent='Night waking – back to sleep when ready'; }
     else if(M.kindNow==='Evening'){ $('sleepSub').textContent='Woke after going down for the night – back down after the feed'; }
     else if(M.nextSleep){
@@ -1837,7 +1841,8 @@ function newLayout(){
   var tiles=document.createElement('div'); tiles.className='nl-tiles';
   var acts=document.createElement('div'); acts.className='nl-acts';
   sec.insertBefore(tiles,fc); tiles.appendChild(fc); tiles.appendChild(sc);
-  acts.appendChild($('placeAsk')); acts.appendChild(fc.querySelector('.btns')); acts.appendChild(sc.querySelector('.btns'));
+  acts.appendChild($('placeAsk')); acts.appendChild(fc.querySelector('.btns')); var sb=sc.querySelector('.btns'); sb.className='btns dialbtn'; $('dial').parentNode.insertBefore(sb,$('dial').nextSibling);
+  var dw=document.createElement('div'); dw.className='dialwrap'; $('dial').parentNode.insertBefore(dw,$('dial')); dw.appendChild($('dial')); dw.appendChild(sb);
   sec.insertBefore(acts,$('todayCard'));
   sec.insertBefore($('vitCard'),$('todayCard'));
   var e=fc.querySelectorAll('.earlier'); if(e[0]) e[0].textContent='＋ Earlier';
