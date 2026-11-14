@@ -523,6 +523,26 @@ html.look-new .dial .mk.sun{color:var(--warn);border-color:color-mix(in srgb,var
 html.look-new .dial .mk.moon{color:var(--sleep);border-color:color-mix(in srgb,var(--sleep) 70%,transparent)!important}
 html.look-new .dial .ctr .s{color:var(--muted)}
 html.look-new .lastnight .x{color:var(--muted);opacity:.7}
+/* ---- review fixes ---- */
+html.look-new .wrap{padding-top:calc(env(safe-area-inset-top) + 18px);padding-bottom:calc(128px + env(safe-area-inset-bottom))}
+html.look-new .top .dot{background:var(--ok)}
+html.look-new .placeAsk{margin:0 0 12px!important}
+html.look-new .card.lastnight{margin-bottom:12px}
+html.look-new .nx.pb{display:block}
+html.look-new .nx.pb span{display:block}
+html.look-new .placeAsk .pa-b button.skip{font-size:0;padding:6px 8px}
+html.look-new .placeAsk .pa-b button.skip::before{content:'×';font-size:20px;line-height:1;color:var(--muted)}
+html.look-new .btn:not(.next):not(.sleepbtn){box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--feed) 55%,transparent)!important}
+.dial .ftk{stroke:var(--feed);stroke-width:3.5;stroke-linecap:round}
+.dial .ftk.next{opacity:.5;stroke-dasharray:3 3}
+.dial .nowd{fill:var(--ink);stroke:var(--bg);stroke-width:3}
+html.look-new .dial .sl.next,html.look-new .dial .sl.plan{opacity:.8!important;stroke:var(--sleep)!important;stroke-dasharray:6 5!important;stroke-width:5!important;stroke-linecap:butt;animation:none!important}
+html.look-new .dial .sl.plan{opacity:.5!important}
+html.look-new .dial .sl.wdz{opacity:.4;stroke:var(--sleep);stroke-dasharray:1.5 5;stroke-width:9;stroke-linecap:round}
+html.look-new .dial .tl{font-size:10.5px}
+.nx.pb .pbar{height:6px;border-radius:3px;background:color-mix(in srgb,var(--sleep) 14%,transparent);margin:7px 0 6px;overflow:hidden}
+.nx.pb .pbar i{display:block;height:100%;border-radius:3px;background:var(--sleep)}
+.nx.pb em{font-style:normal;font-size:13px;font-weight:600;color:var(--muted)}
 /* ring: hour ticks, wind-down, the rest of the day */
 .dial .tk{stroke:color-mix(in srgb,var(--ink) 22%,transparent);stroke-width:1.5;stroke-linecap:round}
 .dial .tl{fill:var(--muted);font-size:10px;font-weight:600;text-anchor:middle;font-family:inherit}
@@ -1205,12 +1225,12 @@ function toMin(s){var p=s.split(':');return +p[0]*60+ +p[1]}
 function startOfDay(t){var d=new Date(t);d.setHours(0,0,0,0);return d.getTime()}
 function dur(ms,short){
   if(ms<0)ms=0;var m=Math.floor(ms/MIN),h=Math.floor(m/60);m=m%60;
-  if(short)return h?h+'h '+pad(m)+'m':m+' min';
+  if(short)return h?h+'h '+pad(m)+'m':m+'m';
   return h?h+' h '+pad(m)+' min':m+' min';
 }
 function bigDur(ms){
   if(ms<0)ms=0;var m=Math.floor(ms/MIN),h=Math.floor(m/60);m=m%60;
-  return h?h+'<small>h</small>'+pad(m)+'<small>m</small>':m+'<small>min</small>';
+  return h?h+'<small>h</small> '+pad(m)+'<small>m</small>':m+'<small>m</small>';
 }
 function dayName(t){
   var d0=startOfDay(now()),d=startOfDay(t);
@@ -1349,7 +1369,7 @@ function render(){
   } else { $('feedBig').textContent='–'; $('feedSub').textContent='No feeds logged yet'; }
   document.querySelectorAll('.btn[data-k]').forEach(function(b){
     var on=b.getAttribute('data-k')===nextSide; b.classList.toggle('next',on);
-    b.innerHTML=b.getAttribute('data-k')+(on?'<span class="tag">Next</span>':''); });
+    b.innerHTML=b.getAttribute('data-k')+(on?'<span class="tag">'+(window.LOOK==='new'?'Suggested':'Next')+'</span>':''); });
 
   // sleep card
   var sc=$('sleepCard'), sp=$('sleepPill'), btn=$('sleepBtn'); sc.className='card'; sp.hidden=true; $('sleepBarWrap').hidden=true;
@@ -1678,7 +1698,7 @@ try{ QUEUE=JSON.parse(localStorage.getItem(QKEY)||'[]')||[]; }catch(e){ QUEUE=[]
 function saveQ(){ try{ localStorage.setItem(QKEY,JSON.stringify(QUEUE)); }catch(e){} }
 function withQueue(data){ if(!QUEUE.length||!data)return data; var d=JSON.parse(JSON.stringify(data));
   QUEUE.forEach(function(q){ d.rows.push([q[0],q[0].substr(11,5)+' '+q[1]]); }); return d; }
-function syncLabel(){ if(QUEUE.length) setSync('busy',QUEUE.length+' waiting to save'); else setSync('', (document.documentElement.classList.contains('look-new')?'':'Updated ')+hm(now())); }
+function syncLabel(){ if(QUEUE.length) setSync('busy',QUEUE.length+' waiting to save'); else setSync('', document.documentElement.classList.contains('look-new')?'Synced':'Updated '+hm(now())); }
 function apply(data){
   DATA=data; skew=parseLocal(data.now)-Date.now(); M=build(withQueue(data)); render(); syncLabel();
 }
@@ -1960,9 +1980,9 @@ function newLayout(){
   sec.insertBefore(tiles,fc); tiles.appendChild(fc); tiles.appendChild(sc);
   acts.appendChild(fc.querySelector('.btns'));
   var er=document.createElement('div'); er.className='nl-earlier'; er.innerHTML='<button onclick="openEarlier(\'feed\')">+ Earlier feed</button><i></i><button onclick="openEarlier(\'sleep\')">+ Earlier sleep</button>'; acts.appendChild(er);
-  acts.appendChild($('placeAsk')); var sb=sc.querySelector('.btns'); sb.className='btns dialbtn'; $('dial').parentNode.insertBefore(sb,$('dial').nextSibling);
+  var sb=sc.querySelector('.btns'); sb.className='btns dialbtn'; $('dial').parentNode.insertBefore(sb,$('dial').nextSibling);
   var dw=document.createElement('div'); dw.className='dialwrap'; $('dial').parentNode.insertBefore(dw,$('dial')); dw.appendChild($('dial')); dw.appendChild(sb);
-  var lg=document.createElement('div'); lg.className='dlegend'; lg.id='dlegend'; dw.parentNode.insertBefore(lg,dw.nextSibling);
+  dw.parentNode.insertBefore($('placeAsk'),dw);
   sec.insertBefore(acts,$('todayCard'));
   sec.insertBefore($('vitCard'),$('todayCard'));
   var e=fc.querySelectorAll('.earlier'); if(e[0]) e[0].textContent='+ Earlier';
@@ -1972,7 +1992,7 @@ function newLayout(){
 function nxRel(t,n){ var d=t-n; if(d>2*MIN) return 'in '+dur(d,true); if(d>-5*MIN) return 'now'; return dur(-d,true)+' late'; }
 function nxBox(cls,lab,t,n,est){ var d=t-n; return '<div class="nx '+cls+(d<=-5*MIN?' late':d<=2*MIN?' due':'')+'"><span>'+lab+'</span><b>'+(est?'≈ ':'')+hm(t)+'</b><em>'+nxRel(t,n)+'</em></div>'; }
 function shortTiles(n,lf,nf){
-  if(lf) $('feedSub').innerHTML='<b>'+hm(lf.start)+'</b>'+(lf.side?' · '+lf.side:'')+(nf?nxBox('f',nf.afterNap?'Next · after nap':'Next feed',nf.t,n,true):'');
+  if(lf) $('feedSub').innerHTML='<b>'+hm(lf.start)+'</b>'+(lf.side?' · '+lf.side+' side':'')+(nf?nxBox('f',nf.afterNap?'Next · after nap':'Next feed',nf.t,n,true):'');
   // the ring already shows the next nap / how long he's slept, so this tile sums up the day (or the night) instead
   var ss=$('sleepSub'), d0=startOfDay(n), asleep=M.state==='Asleep', ck=asleep?M.curKind(n):'';
   var night=(asleep&&ck==='Night')||(!asleep&&(M.kindNow==='Night'||M.kindNow==='Evening'));
@@ -1993,11 +2013,11 @@ function shortTiles(n,lf,nf){
     $('sleepLabel').textContent='Naps today'; $('sleepBig').innerHTML=naps.length?bigDur(tot):'0';
     var days=[]; for(var k=1;k<=7;k++){ var a0=d0-k*DAY, t=M.sleeps.filter(function(x){return isNap(x)&&x.start>=a0&&x.start<a0+DAY}).reduce(function(q,x){return q+x.dur},0); if(t>0)days.push(t); }
     var usual=days.length>=3?days.reduce(function(q,x){return q+x},0)/days.length:0;
-    ss.innerHTML=(naps.length?naps.length+' nap'+(naps.length>1?'s':'')+' · longest <b>'+dur(lg,true)+'</b>':'none yet today')+
-      (usual?'<div class="nx s"><span>Usual per day</span><b>≈ '+dur(usual,true)+'</b></div>':'');
+    ss.innerHTML=(naps.length?naps.length+' nap'+(naps.length>1?'s · longest <b>'+dur(lg,true)+'</b>':''):'none yet today')+
+      (usual?'<div class="nx s pb"><span>Of a usual day</span><div class="pbar"><i style="width:'+Math.min(100,Math.round(tot/usual*100))+'%"></i></div><em>'+dur(tot,true)+' of ~'+dur(usual,true)+'</em></div>':'');
   }
 }
-function hmDur(ms){ if(ms<0)ms=0; var m=Math.floor(ms/MIN), h=Math.floor(m/60); m=m%60; return h?h+'<small>h</small>'+pad(m):m+'<small>min</small>'; }
+function hmDur(ms){ return bigDur(ms); }
 function renderDial(n){
   var S=M.S, d0=startOfDay(n), mins=minsOfDay(n), el=$('dial');
   function md(a){a=a.slice().sort(function(x,y){return x-y});var k=Math.floor(a.length/2);return a.length?(a.length%2?a[k]:(a[k-1]+a[k])/2):null}
@@ -2025,14 +2045,14 @@ function renderDial(n){
     var p=pt(t1,r), q=pt(t2,r), big=(ang(t2)-ang(t1))>Math.PI?1:0;
     return '<path class="'+cls+'" d="M'+p[0].toFixed(1)+' '+p[1].toFixed(1)+' A'+r+' '+r+' 0 '+big+' 1 '+q[0].toFixed(1)+' '+q[1].toFixed(1)+'"'+(cls.indexOf('next')<0?' filter="url(#dglow)"':'')+'></path>'; }
   var h='<svg viewBox="0 0 340 340" aria-hidden="true"><defs><filter id="dglow" filterUnits="userSpaceOnUse" x="-30" y="-30" width="400" height="400"><feGaussianBlur stdDeviation="5" result="g"></feGaussianBlur><feMerge><feMergeNode in="g"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter></defs>';
-  h+=arc(a,b,'trk').replace(' filter="url(#dglow)"','')+arc(a,n,'done').replace(' filter="url(#dglow)"','');
+  h+=arc(a,b,'trk').replace(' filter="url(#dglow)"','');
   sl.forEach(function(s){ h+=arc(s.start,s.end,'sl'+(s.kind==='Nap'?' nap':'')); });
   // next nap (where the app expects it)
   if(!asleep&&!night&&M.nextSleep&&!M.isBedtime){
     var nl=md(M.sleeps.filter(function(x){return x.kind==='Nap'&&x.dur>=15*MIN&&x.start>=n-7*DAY}).map(function(x){return x.dur}))||40*MIN;
     var ns0=Math.max(M.nextSleep,n); h+=arc(ns0,ns0+nl,'sl next'); PLAN.push({t:ns0,e:ns0+nl,k:'next'});
-    // wind-down window just before it, on the outer edge
-    var wd0=Math.max(n,M.nextSleep-S.windDown*MIN); if(M.nextSleep>n) h+=arc(wd0,M.nextSleep,'wd',R+15);
+    // wind-down: a lighter dashed stretch just before the nap
+    var wd0=Math.max(n,M.nextSleep-S.windDown*MIN); if(M.nextSleep>n) h+=arc(wd0,M.nextSleep,'sl wdz');
     // the rest of the day as faint naps: nap, his usual awake time, nap … until bedtime
     var ww=(M.dayWW||100)*MIN, t=ns0+nl+ww, bedT=d0+bedTyp*MIN, k2=0;
     while(t+20*MIN<bedT-45*MIN&&k2<4){ h+=arc(t,Math.min(t+nl,bedT),'sl plan'); PLAN.push({t:t,e:t+nl,k:'plan'}); t+=nl+ww; k2++; } }
@@ -2041,14 +2061,14 @@ function renderDial(n){
     var we=Math.max(n+5*MIN,M.since+nl2); h+=arc(n,we,'sl next'); PLAN.push({t:M.since,e:we,k:'wake'});
     var ww2=(M.dayWW||100)*MIN, t2=we+ww2, bed2=d0+bedTyp*MIN, k3=0;
     while(t2+20*MIN<bed2-45*MIN&&k3<4){ h+=arc(t2,Math.min(t2+nl2,bed2),'sl plan'); PLAN.push({t:t2,e:t2+nl2,k:'plan'}); t2+=nl2+ww2; k3++; } }
-  M.feeds.forEach(function(f){ if(f.start>=a&&f.start<=b){ var p=pt(f.start,R-27); h+='<circle class="fd" cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="4.5"></circle>'; } });
+  function ftick(t,cls){ var p1=pt(t,R+11), p2=pt(t,R+21); return '<line class="ftk'+(cls||'')+'" x1="'+p1[0].toFixed(1)+'" y1="'+p1[1].toFixed(1)+'" x2="'+p2[0].toFixed(1)+'" y2="'+p2[1].toFixed(1)+'"></line>'; }
+  M.feeds.forEach(function(f){ if(f.start>=a&&f.start<=b) h+=ftick(f.start); });
   var lf=M.feeds[M.feeds.length-1], nf=lf?nextFeedAt(lf,n):null;
-  // hour ticks outside the ring, a label every 3 hours
-  for(var hh=Math.ceil(a/HOUR)*HOUR; hh<=b; hh+=HOUR){ var hr=new Date(hh).getHours(), p1=pt(hh,R+12), p2=pt(hh,R+(hr%3?16:19));
-    h+='<line class="tk" x1="'+p1[0].toFixed(1)+'" y1="'+p1[1].toFixed(1)+'" x2="'+p2[0].toFixed(1)+'" y2="'+p2[1].toFixed(1)+'"></line>';
-    if(hr%3===0&&hh-a>40*MIN&&b-hh>40*MIN){ var pl=pt(hh,R+29); h+='<text class="tl" x="'+pl[0].toFixed(1)+'" y="'+(pl[1]+3.5).toFixed(1)+'">'+pad(hr)+'</text>'; } }
-  if(nf&&nf.t>n&&nf.t<=b){ var p=pt(nf.t,R-27); h+='<circle class="fd next" cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="9"></circle>'; }
-  var np=pt(n,R); h+='<circle class="nowo" cx="'+np[0].toFixed(1)+'" cy="'+np[1].toFixed(1)+'" r="8.5" filter="url(#dglow)"></circle><circle class="nowi" cx="'+np[0].toFixed(1)+'" cy="'+np[1].toFixed(1)+'" r="3.5"></circle></svg>';
+  if(nf&&nf.t>n&&nf.t<=b) h+=ftick(nf.t,' next');
+  // time scale: a label every 3 hours
+  for(var hh=Math.ceil(a/HOUR)*HOUR; hh<=b; hh+=HOUR){ var hr=new Date(hh).getHours();
+    if(hr%3===0&&hh-a>40*MIN&&b-hh>40*MIN){ var pl=pt(hh,R+34); h+='<text class="tl" x="'+pl[0].toFixed(1)+'" y="'+(pl[1]+3.5).toFixed(1)+'">'+pad(hr)+'</text>'; } }
+  var np=pt(n,R); h+='<circle class="nowd" cx="'+np[0].toFixed(1)+'" cy="'+np[1].toFixed(1)+'" r="7"></circle></svg>';
   // start and end marks
   var sun='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 16a7 7 0 0 1 14 0M2 19h20M12 4v3M4.9 8.9l2 2M19.1 8.9l-2 2"/></svg>';
   var moon='<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
@@ -2060,15 +2080,17 @@ function renderDial(n){
   var L='',B='',Sb='',cc='';
   if(asleep){ var k=M.curKind(n); L=k==='Night'?'Sleeping':'Napping'; B=hmDur(n-M.since); Sb='since '+hm(M.since); }
   else if(M.state==='Awake'&&!night&&M.nextSleep){
-    var d=M.nextSleep-n, wd=M.nextSleep-S.windDown*MIN;
-    if(d>0){ L=M.isBedtime?'Bedtime in':'Nap in'; B=hmDur(d); Sb='around '+hm(M.nextSleep)+' · awake '+dur(n-M.since,true); if(n>=wd)cc='warn'; }
+    var d=M.nextSleep-n, wd=M.nextSleep-S.windDown*MIN, nap=M.isBedtime?'Bedtime':'Nap';
+    var df=nf?nf.t-n:null, side=lf&&lf.first?(lf.first==='Left'?'Right':'Left'):'';
+    if(df!=null&&nf.t<M.nextSleep-10*MIN){   // the feed comes first: make it the headline
+      if(df>2*MIN){ L='Feed in'; B=hmDur(df); } else { L='Feed'; B=df>-5*MIN?'Now':'+'+hmDur(-df); cc=df<-20*MIN?'bad':'warn'; }
+      Sb=(side?side+' side · ':'')+nap.toLowerCase()+(d>0?' in '+dur(d,true):' now');
+    } else if(d>0){ L=nap+' in'; B=hmDur(d); Sb='around '+hm(M.nextSleep)+' · awake '+dur(n-M.since,true); if(n>=wd)cc='warn'; }
     else { L=M.isBedtime?'Bedtime':'Nap time'; B=d>-5*MIN?'Now':'+'+hmDur(-d); Sb='was due '+hm(M.nextSleep); cc=n>=M.nextSleep+15*MIN?'bad':'warn'; }
   } else if(M.state==='Awake'){ L='Awake'; B=hmDur(n-M.since); Sb=night?'night waking':'since '+hm(M.since); }
   else { L='Today'; B='–'; Sb='tap a button to start'; }
   h+='<div class="ctr '+cc+'"><div class="l">'+L+'</div><div class="b">'+B+'</div><div class="s">'+Sb+'</div></div>';
   el.innerHTML=h;
-  var lgd=$('dlegend'); if(lgd){ var hasWd=h.indexOf('class="wd"')>=0, hasPl=PLAN.length>0;
-    lgd.innerHTML='<span><i></i>Sleep</span>'+(hasPl?'<span><i class="pl"></i>Expected</span>':'')+'<span><i class="fd"></i>Feed</span>'+(hasWd?'<span><i class="wd"></i>Wind down</span>':'')+'<span style="opacity:.8">Tap the ring for details</span>'; }
   el.onclick=function(ev){ if(ev.target.closest('button'))return;
     var r=el.getBoundingClientRect(), x=(ev.clientX-r.left)/r.width*340-C, y=(ev.clientY-r.top)/r.height*340-C, d=Math.sqrt(x*x+y*y);
     if(d<R-45||d>R+40) return;
