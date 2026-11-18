@@ -274,7 +274,7 @@ h2{font-size:15px;margin:18px 4px 8px;color:var(--muted);font-weight:700;text-tr
 .ptab td{text-align:right;padding:6px 0 6px 8px;border-top:1px solid var(--line);font-weight:600;white-space:nowrap}
 .ptab td.best{color:var(--sleep)}
 .wkctl{display:flex;gap:8px;justify-content:space-between;margin-bottom:10px}
-.seg.sm{padding:3px;border-radius:11px;flex:0 0 auto}.seg.sm button{font-size:13px;padding:7px 11px;border-radius:9px;white-space:nowrap;flex:0 0 auto}
+.seg.sm{padding:3px;border-radius:11px;flex:0 0 auto}.seg.segn button{flex:1 1 0;min-width:0;white-space:normal;line-height:1.25;padding:6px 4px}.seg.sm button{font-size:13px;padding:7px 11px;border-radius:9px;white-space:nowrap;flex:0 0 auto}
 .wkgrid{position:relative}
 .wkh{position:relative;height:16px;margin-left:46px;margin-right:40px;font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums}
 .wkh span{position:absolute;transform:translateX(-50%);top:0}
@@ -571,6 +571,130 @@ html.look-new .pa-l{font-size:13px;font-weight:600;color:var(--muted)}
 html.look-new .pa-b{justify-content:flex-start;gap:6px;margin-top:8px}
 html.look-new .pa-b button{min-width:0;padding:8px 13px;border-radius:999px;font-size:14px;font-weight:600}
 html.look-new .pa-b button.skip{margin-left:auto;padding:8px 4px;font-size:13.5px}
+
+/* ================= "Today" look (v3): calm iOS-style screen, no dial ================= */
+html.look-v3{
+  --bg:#F2F2F7; --card:#FFFFFF; --ink:#1C1C1E; --muted:#86868B; --line:#E5E5EA;
+  --feed:#E8735A; --feed-soft:#FCEBE6; --sleep:#5856D6; --sleep-soft:#ECEBFB;
+  --ok:#2E9E4F; --warn:#D9780A; --bad:#E5484D; --warn-soft:#FDF1E1; --bad-soft:#FDE8E9;
+  --shadow:0 1px 2px rgba(0,0,0,.04); --r:18px}
+@media (prefers-color-scheme: dark){ html.look-v3:not(.night){
+  --bg:#000000; --card:#1C1C1E; --ink:#F5F5F7; --muted:#98989F; --line:#2C2C2E;
+  --feed:#FF8A6E; --feed-soft:#3A221D; --sleep:#8E8CFF; --sleep-soft:#26254D;
+  --ok:#47C76B; --warn:#FFA53D; --bad:#FF6B6E; --warn-soft:#3A2A12; --bad-soft:#3D1A1C; --shadow:none} }
+html.night.look-v3{--bg:#000; --card:#140A08; --ink:#E7A094; --muted:#8C564D; --line:#2A1411;
+  --feed:#F0846C; --feed-soft:#2A120E; --sleep:#D98A74; --sleep-soft:#24110D;
+  --ok:#C98A62; --warn:#E39552; --bad:#F06C5A; --warn-soft:#2B1708; --bad-soft:#2D0F0B; --shadow:none}
+html.look-v3 body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+html.look-v3 .wrap{padding-top:calc(env(safe-area-inset-top) + 8px);padding-bottom:calc(124px + env(safe-area-inset-bottom))}
+html.look-v3 section[data-tab="now"]>*:not(#v3){display:none!important}
+html.look-v3 .top{align-items:center;margin:4px 2px 0}
+.v3-sub{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 2px 16px}
+html.look-v3 .v3-sub .age{margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.look-v3 .v3-sub .sync{padding:4px 0;white-space:nowrap;flex:none}
+html.look-v3 .top h1{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+html.look-v3 .top .age{font-size:14px;color:var(--muted);font-weight:500;margin-top:3px}
+html.look-v3 .sync{background:none;border:0;color:var(--muted);font:inherit;font-size:12.5px;font-weight:500;display:flex;align-items:center;gap:5px;padding:6px 4px}
+html.look-v3 .top .dot{background:var(--ok)}
+html.look-v3 .gear,html.look-v3 .moon{width:36px;height:36px;border-radius:50%;border:0;background:var(--card);color:var(--muted);display:grid;place-items:center;padding:0;font-size:18px;box-shadow:var(--shadow)}
+html.look-v3 .gear svg{width:19px;height:19px}
+html.night.look-v3 .moon{color:var(--sleep)}
+/* status */
+.v3-status{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.v3-tile{background:var(--card);border-radius:var(--r);padding:14px 14px 13px;box-shadow:var(--shadow);min-width:0}
+.v3-lab{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--muted)}
+.v3-lab i{width:8px;height:8px;border-radius:50%;background:var(--feed);flex:none}
+.v3-tile.sleep .v3-lab i{background:var(--sleep)}
+.v3-big{font-size:34px;font-weight:700;letter-spacing:-.03em;line-height:1.05;margin-top:6px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.v3-big small{font-size:16px;font-weight:600;color:var(--muted);margin:0 1px}
+.v3-meta{font-size:13.5px;color:var(--muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v3-next{margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+.v3-next span{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:1px}
+.v3-next b{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums;margin-right:5px}
+.v3-next em{font-style:normal;font-size:13px;color:var(--muted);font-weight:500;white-space:nowrap}
+.v3-next.soon em{color:var(--feed);font-weight:600}
+.v3-next.warn b,.v3-next.warn em{color:var(--warn)}
+.v3-next.bad b,.v3-next.bad em{color:var(--bad)}
+/* the four buttons */
+.v3-acts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.v3-acts.three .v3-btn.sleep{grid-column:span 2}
+.v3-btn{display:flex;align-items:center;gap:12px;min-height:76px;padding:12px 14px;border-radius:var(--r);border:0;background:var(--card);color:var(--ink);font:inherit;text-align:left;box-shadow:var(--shadow);-webkit-user-select:none;user-select:none;transition:transform .08s ease;min-width:0}
+.v3-btn:active{transform:scale(.97)}
+.v3-btn .ic{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:16px}
+.v3-btn .ic svg{width:20px;height:20px}
+.v3-btn .tx{display:flex;flex-direction:column;min-width:0}
+.v3-btn b{font-size:17px;font-weight:650;line-height:1.2}
+.v3-btn small{font-size:12.5px;color:var(--muted);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.v3-btn b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:385px){ .v3-btn{gap:9px;padding:12px 11px} .v3-btn .ic{width:34px;height:34px;font-size:15px} .v3-btn .ic svg{width:18px;height:18px} .v3-btn b{font-size:16px} .v3-btn small{font-size:12px} .v3-big{font-size:31px} }
+.v3-btn.feed .ic{background:var(--feed-soft);color:var(--feed)}
+.v3-btn.feed.on{background:var(--feed);color:#fff}
+.v3-btn.sleep .ic{background:var(--sleep-soft);color:var(--sleep)}
+.v3-btn.sleep.on{background:var(--sleep);color:#fff}
+.v3-btn.on .ic{background:rgba(255,255,255,.22);color:#fff}
+.v3-btn.on small{color:rgba(255,255,255,.88)}
+html.night.look-v3 .v3-btn.on{background:color-mix(in srgb,var(--feed) 24%,var(--card));color:var(--ink)}
+html.night.look-v3 .v3-btn.sleep.on{background:color-mix(in srgb,var(--sleep) 20%,var(--card))}
+html.night.look-v3 .v3-btn.on .ic{background:color-mix(in srgb,var(--feed) 30%,transparent);color:var(--ink)}
+html.night.look-v3 .v3-btn.on small{color:var(--muted)}
+.v3-btn.vit .ic{background:var(--warn-soft);color:var(--warn)}
+.v3-btn.vit.late{box-shadow:inset 0 0 0 1.5px var(--warn)}
+.v3-btn.vit.late small{color:var(--warn);font-weight:600}
+.v3-btn.vit.done .ic{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}
+.v3-links{display:flex;justify-content:space-between;gap:2px;margin:6px 0 12px}
+.v3-links button{border:0;background:none;color:var(--muted);font:inherit;font-size:13px;font-weight:600;padding:9px 6px;border-radius:10px;white-space:nowrap}
+.v3-links button:active{background:var(--card)}
+.v3-links button.arm{color:var(--bad)}
+/* cards */
+.v3-card{background:var(--card);border-radius:var(--r);padding:16px;box-shadow:var(--shadow);margin-bottom:10px}
+.v3-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:14px}
+.v3-h b{font-size:17px;font-weight:700}
+.v3-h span{font-size:13.5px;color:var(--muted);font-weight:500}
+.v3-h button{border:0;background:none;color:var(--sleep);font:inherit;font-size:14px;font-weight:600;padding:0}
+/* the day as one line */
+.v3-tl{position:relative;height:44px;cursor:pointer}
+.v3-tl .trk{position:absolute;left:0;right:0;top:14px;height:28px;border-radius:8px;background:color-mix(in srgb,var(--ink) 6%,transparent);overflow:hidden}
+.v3-tl .v3g{position:absolute;top:0;bottom:0;width:1px;background:color-mix(in srgb,var(--ink) 9%,transparent)}
+.v3-tl .v3s{position:absolute;top:0;bottom:0;background:var(--sleep);border-radius:4px}
+.v3-tl .v3s.nap{background:color-mix(in srgb,var(--sleep) 72%,var(--card))}
+.v3-tl .v3p{position:absolute;top:3px;bottom:3px;border-radius:5px;border:1.5px solid color-mix(in srgb,var(--sleep) 65%,transparent);background:color-mix(in srgb,var(--sleep) 10%,transparent);box-sizing:border-box}
+.v3-tl .v3f{position:absolute;top:2px;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:var(--feed);box-sizing:border-box}
+.v3-tl .v3f.next{background:none;border:2px solid var(--feed)}
+.v3-tl .v3now{position:absolute;top:10px;bottom:0;width:2px;margin-left:-1px;border-radius:1px;background:var(--ink)}
+.v3-ax{position:relative;height:16px;margin-top:5px;font-size:11px;color:var(--muted);font-weight:500;font-variant-numeric:tabular-nums}
+.v3-ax span{position:absolute;transform:translateX(-50%)}
+.v3-ax span:first-child{transform:none}.v3-ax span:last-child{transform:translateX(-100%)}
+.v3-key{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-top:8px}
+.v3-key span{display:inline-flex;align-items:center;gap:5px}
+.v3-key i{display:inline-block;width:12px;height:8px;border-radius:2px;background:var(--sleep)}
+.v3-key i.p{background:color-mix(in srgb,var(--sleep) 10%,transparent);box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--sleep) 65%,transparent)}
+.v3-key i.f{width:8px;border-radius:50%;background:var(--feed)}
+.v3-stats{display:grid;grid-template-columns:repeat(3,1fr);margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.v3-stats div{padding:0 10px;border-left:1px solid var(--line);min-width:0}
+.v3-stats div:first-child{border-left:0;padding-left:0}
+.v3-stats b{display:block;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.v3-stats span{display:block;font-size:13px;color:var(--ink);font-weight:600;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v3-stats small{display:block;font-size:12px;color:var(--muted);font-weight:500;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v3-card .row{padding:11px 0}
+.v3-card .row:first-of-type{border-top:0;padding-top:0}
+.v3-card .row .chev{color:var(--muted);opacity:.6;margin-left:2px}
+/* nap place question */
+html.look-v3 .placeAsk{background:var(--card);border:0;border-radius:var(--r);padding:12px 14px;margin:0 0 10px;text-align:left;box-shadow:var(--shadow)}
+html.look-v3 .pa-l{font-size:14px;font-weight:600}
+html.look-v3 .pa-b{justify-content:flex-start;gap:6px;margin-top:9px}
+html.look-v3 .pa-b button{min-width:0;padding:8px 13px;border-radius:999px;font-size:14px;font-weight:600}
+html.look-v3 .pa-b button.skip{margin-left:auto;padding:8px 4px}
+/* the other tabs in the same style */
+html.look-v3 .card{background:var(--card);border:0;border-radius:var(--r);box-shadow:var(--shadow)}
+html.look-v3 .label{text-transform:none;letter-spacing:0;font-size:15px;font-weight:700;color:var(--ink)}
+html.look-v3 .label i{display:none}
+html.look-v3 .tabs{left:12px;right:12px;bottom:calc(8px + env(safe-area-inset-bottom));padding:6px;border-radius:22px;
+  background:color-mix(in srgb,var(--card) 88%,transparent);-webkit-backdrop-filter:blur(20px) saturate(1.5);backdrop-filter:blur(20px) saturate(1.5);
+  border:1px solid var(--line);box-shadow:0 6px 24px rgba(0,0,0,.12)}
+html.look-v3 .tabs button{border-radius:16px;padding:7px 0}
+html.look-v3 .tabs button.on{background:color-mix(in srgb,var(--sleep) 13%,transparent);color:var(--sleep)}
+html.look-v3 .sumbtn{border-radius:var(--r)}
+html.look-v3 #undoBtn{display:none}
 </style>
 </head>
 <body>
@@ -585,6 +709,7 @@ html.look-new .pa-b button.skip{margin-left:auto;padding:8px 4px;font-size:13.5p
   </div>
 
   <section data-tab="now">
+  <div id="v3" hidden></div>
   <div class="card lastnight" id="lnCard" hidden></div>
   <div class="dial" id="dial" hidden></div>
   <div class="card" id="feedCard">
@@ -1433,6 +1558,7 @@ function render(){
     '<div><b>'+naps+'</b><span>Naps</span></div><div><b>'+(avgInt?dur(avgInt,true):'–')+'</b><span>Feed gap</span></div>';
   renderLastNight(n);
   if(LOOK==='new') renderDial(n);
+  if(LOOK==='v3') renderV3(n);
 
   renderDay(n); renderPatterns(n); renderWeek(n);
   var le=M.lastEntry; $('undoBtn').textContent=undoArmed>n?'Tap again to undo':(le?'Undo last entry ('+label(le)+' '+hm(le.t)+')':'Undo last entry');
@@ -1530,7 +1656,7 @@ function renderDay(n){
   sl.forEach(function(s){items.push({t:s.start,kind:'sleep',ref:s,html:sleepItem(s,n)})});
   items.sort(function(a,b){return a.t-b.t}); ITEMS=items;
   $('dlist').innerHTML=items.length?items.map(function(it,i){
-      return '<div class="row tap" onclick="openItem('+i+')">'+it.html.replace('<div class="tm">','<div class="tm">'+(it.t<d0?'<small style="color:var(--muted);font-weight:500">'+dayName(it.t).slice(0,3)+' </small>':''))+'<span class="chev">›</span></div>';
+      return '<div class="row tap" onclick="openItem('+i+')">'+it.html.replace('<div class="tm">','<div class="tm">'+(it.t<d0?'<small style="color:var(--muted);font-weight:500">'+new Date(it.t).toLocaleDateString('en-GB',{weekday:'short'})+' </small>':''))+'<span class="chev">›</span></div>';
     }).join(''):'<div class="empty">Nothing logged this day.</div>';
 }
 
@@ -1642,8 +1768,8 @@ function renderPatterns(n){
     var rowsN=[];
     days.forEach(function(k){ napDays[k].sort(function(a,b){return a.start-b.start}).forEach(function(s,i){
       var w=M.wakes.filter(function(x){return x.end===s.start})[0]; (rowsN[i]=rowsN[i]||[]).push({st:minsOfDay(s.start),d:s.dur,aw:w?w.dur:null}); }); });
-    var segN=counts.length>1?'<div class="seg sm" style="margin:10px 0 2px">'+counts.slice().sort(function(a,b){return a-b}).map(function(c){
-        return '<button class="'+(c===pick?'on':'')+'" onclick="NAPN='+c+';render()">'+c+' naps <span style="font-weight:500;color:var(--muted)">· '+byCount[c].length+' day'+(byCount[c].length>1?'s':'')+'</span></button>'; }).join('')+'</div>':'';
+    var segN=counts.length>1?'<div class="seg sm segn" style="margin:10px 0 2px">'+counts.slice().sort(function(a,b){return a-b}).map(function(c){
+        return '<button class="'+(c===pick?'on':'')+'" onclick="NAPN='+c+';render()">'+c+' naps<span style="display:block;font-size:11.5px;font-weight:500;color:var(--muted)">'+byCount[c].length+' day'+(byCount[c].length>1?'s':'')+'</span></button>'; }).join('')+'</div>':'';
     var tab='<table class="naptab"><tr><th>Nap</th><th>Usually at</th><th>Lasts</th><th>Awake before</th></tr>'+
       rowsN.map(function(r,i){ var aws=r.filter(function(x){return x.aw}).map(function(x){return x.aw});
         return '<tr><td>'+(i+1)+'</td><td>'+fmtTod(median(r.map(function(x){return x.st})))+'</td><td>'+dur(median(r.map(function(x){return x.d})),true)+'</td><td>'+(aws.length?dur(median(aws),true):'–')+'</td></tr>'; }).join('')+'</table>';
@@ -1710,7 +1836,7 @@ try{ QUEUE=JSON.parse(localStorage.getItem(QKEY)||'[]')||[]; }catch(e){ QUEUE=[]
 function saveQ(){ try{ localStorage.setItem(QKEY,JSON.stringify(QUEUE)); }catch(e){} }
 function withQueue(data){ if(!QUEUE.length||!data)return data; var d=JSON.parse(JSON.stringify(data));
   QUEUE.forEach(function(q){ d.rows.push([q[0],q[0].substr(11,5)+' '+q[1]]); }); return d; }
-function syncLabel(){ if(QUEUE.length) setSync('busy',QUEUE.length+' waiting to save'); else setSync('', document.documentElement.classList.contains('look-new')?'Synced':'Updated '+hm(now())); }
+function syncLabel(){ if(QUEUE.length) setSync('busy',QUEUE.length+' waiting to save'); else setSync('', /look-(new|v3)/.test(document.documentElement.className)?'Synced':'Updated '+hm(now())); }
 function apply(data){
   DATA=data; skew=parseLocal(data.now)-Date.now(); M=build(withQueue(data)); render(); syncLabel();
 }
@@ -1984,6 +2110,141 @@ function renderLastNight(n){
 /* ---------- new look (per phone): the day dial ---------- */
 var LOOK='new'; try{ LOOK=localStorage.getItem('babylog_look')||'new'; }catch(e){}
 function setLook(v){ try{ localStorage.setItem('babylog_look',v); }catch(e){} location.reload(); }
+
+/* ---------- "Today" look (v3): status, four big buttons, the day as one line ---------- */
+try{ if(!localStorage.getItem('babylog_v3')){ localStorage.setItem('babylog_v3','1'); localStorage.setItem('babylog_look','v3'); LOOK='v3'; } }catch(e){}
+var V3ITEMS=[];
+var V3I={moon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
+  sun:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+  pill:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5c3 3.6 6 7.1 6 10.5a6 6 0 0 1-12 0c0-3.4 3-6.9 6-10.5z"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'};
+function openV3(i){ ITEMS=V3ITEMS; openItem(i); }
+function v3Init(){
+  document.documentElement.classList.add('look-v3');
+  document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){ m.content=/dark/.test(m.media||'')?'#000000':'#F2F2F7'; });
+  var v=$('v3'); v.hidden=false;
+  v.innerHTML='<div id="v3place"></div><div class="v3-status" id="v3status"></div><div class="v3-acts" id="v3acts"></div><div class="v3-links" id="v3links"></div>'+
+    '<div class="v3-card" id="v3day"></div><div class="v3-card" id="v3night" hidden></div><div class="v3-card" id="v3recent"></div>';
+  $('v3place').appendChild($('placeAsk'));
+  var sub=document.createElement('div'); sub.className='v3-sub'; var top=document.querySelector('.top'); top.parentNode.insertBefore(sub,top.nextSibling);
+  sub.appendChild($('ageTxt')); sub.appendChild($('sync'));
+  $('moonBtn').innerHTML=V3I.moon; $('moonBtn').querySelector('svg').style.cssText='width:18px;height:18px';
+}
+// the rest of today as expected naps: next nap, then his usual awake time and nap length until bedtime
+function planNaps(n){
+  var out=[], S=M.S, bedT=startOfDay(n)+(M.bedAvg!=null?M.bedAvg:toMin(S.nightStart))*MIN, t;
+  var nl=median(M.sleeps.filter(function(x){return x.kind==='Nap'&&x.dur>=15*MIN&&x.start>=n-7*DAY}).map(function(x){return x.dur}))||40*MIN;
+  var ww=(M.dayWW||100)*MIN;
+  if(M.state==='Awake'&&M.nextSleep&&!M.isBedtime&&M.kindNow!=='Night'&&M.kindNow!=='Evening'){ t=Math.max(M.nextSleep,n); out.push({t:t,e:t+nl,next:true}); t+=nl+ww; }
+  else if(M.state==='Asleep'&&M.curKind(n)==='Nap'){ var we=Math.max(n+5*MIN,M.since+nl); out.push({t:n,e:we,wake:true}); t=we+ww; }
+  else return out;
+  for(var k=0;k<4&&t+20*MIN<bedT-45*MIN;k++){ out.push({t:t,e:Math.min(t+nl,bedT)}); t+=nl+ww; }
+  return out;
+}
+function v3Usual(n){ // averages over the last 7 full days
+  var d0=startOfDay(n), f=[], np=[], tot=[], up=[];
+  for(var i=1;i<=7;i++){ var a=new Date(d0); a.setDate(a.getDate()-i); var t=a.getTime(), st=dayStats(t); if(!st)continue;
+    var e=new Date(t); e.setDate(e.getDate()+1);
+    f.push(M.feeds.filter(function(x){return x.start>=t&&x.start<e.getTime()}).length); np.push(st.naps); tot.push(st.total); if(st.up!=null)up.push(st.up); }
+  if(f.length<3) return null;
+  var av=function(a){return a.reduce(function(x,y){return x+y},0)/a.length};
+  return {feeds:Math.round(av(f)), naps:Math.round(av(np)), total:av(tot), up:up.length?median(up):null};
+}
+function renderV3(n){
+  var v=$('v3'); if(!v||v.hidden) return;
+  var S=M.S, dd=new Date(n), d0=startOfDay(n), st=M.state;
+  $('hello').textContent=dd.toLocaleDateString('en-GB',{weekday:'long'});
+  var aw=Math.floor((n-parseLocal(S.birth+'T00:00:00'))/(7*DAY));
+  $('ageTxt').textContent=dd.toLocaleDateString('en-GB',{day:'numeric',month:'long'})+(aw>=0?' · '+aw+' weeks old':'');
+  var lf=M.feeds[M.feeds.length-1], nf=lf?nextFeedAt(lf,n):null;
+  var side=lf&&lf.first==='Left'?'Right':lf&&lf.first==='Right'?'Left':'';
+  var plan=planNaps(n), us=v3Usual(n);
+
+  // status: feed and sleep, same layout
+  var h='<div class="v3-tile feed"><div class="v3-lab"><i></i>Last feed</div>';
+  if(lf){ h+='<div class="v3-big">'+bigDur(n-lf.end)+'</div><div class="v3-meta">'+hm(lf.start)+(lf.side?' · '+lf.side+' side':'')+'</div>';
+    if(nf){ var df=nf.t-n, c=df<=-20*MIN?'bad':df<=2*MIN?'warn':df<=30*MIN?'soon':'';
+      h+='<div class="v3-next '+c+'"><span>Next feed'+(nf.afterNap?' · after nap':'')+'</span><b>'+(Math.abs(df)<=2*MIN?'Now':'~'+hm(nf.t))+'</b><em>'+(df>2*MIN?'in '+dur(df,true):df<-2*MIN?dur(-df,true)+' late':'')+'</em></div>'; } }
+  else h+='<div class="v3-big">–</div><div class="v3-meta">No feeds yet</div>';
+  h+='</div><div class="v3-tile sleep">';
+  if(st==='Asleep'){ var night=M.curKind(n)==='Night';
+    h+='<div class="v3-lab"><i></i>'+(night?'Asleep · night':'Napping')+'</div><div class="v3-big">'+bigDur(n-M.since)+'</div><div class="v3-meta">since '+hm(M.since)+'</div>';
+    if(night){ if(us&&us.up!=null){ var up=d0+us.up*MIN; if(up<n)up+=DAY; h+='<div class="v3-next"><span>Usually up</span><b>~'+fmtTod(us.up)+'</b><em>in '+dur(up-n,true)+'</em></div>'; } }
+    else if(plan[0]&&plan[0].wake) h+='<div class="v3-next"><span>Likely awake</span><b>~'+hm(plan[0].e)+'</b><em>in '+dur(plan[0].e-n,true)+'</em></div>';
+  } else if(st==='Awake'){
+    h+='<div class="v3-lab"><i></i>Awake</div><div class="v3-big">'+bigDur(n-M.since)+'</div><div class="v3-meta">since '+hm(M.since)+'</div>';
+    if(M.kindNow==='Night'||M.kindNow==='Evening') h+='<div class="v3-next"><span>'+(M.kindNow==='Night'?'Night waking':'Woke in the evening')+'</span><b>Back down</b><em>after the feed</em></div>';
+    else if(M.nextSleep){ var dn=M.nextSleep-n, wd=M.nextSleep-S.windDown*MIN, c2=n>=M.nextSleep+15*MIN?'bad':n>=wd?'warn':'';
+      h+='<div class="v3-next '+c2+'"><span>'+(M.isBedtime?'Bedtime':'Next nap')+(n>=wd&&dn>0?' · wind down':'')+'</span><b>~'+hm(M.nextSleep)+'</b><em>'+(dn>0?'in '+dur(dn,true):dur(-dn,true)+' over')+'</em></div>'; }
+  } else h+='<div class="v3-lab"><i></i>Sleep</div><div class="v3-big">–</div><div class="v3-meta">Tap “Fell asleep”</div>';
+  $('v3status').innerHTML=h+'</div>';
+
+  // the four buttons
+  var vit=S.vitOn!==false, td=vit?vitToday(n):[], late=vit&&!td.length&&minsOfDay(n)>=toMin(S.vitTime||'10:00'), asleep=st==='Asleep';
+  function B(cls,ic,t,sub,fn){ return '<button class="v3-btn '+cls+'" onclick="'+fn+'"><span class="ic">'+ic+'</span><span class="tx"><b>'+t+'</b><small>'+sub+'</small></span></button>'; }
+  var sleepSub=asleep?'Asleep '+dur(n-M.since,true):(M.nextSleep&&M.kindNow!=='Night'&&M.kindNow!=='Evening'?(M.isBedtime?'Bedtime ~':'Nap ~')+hm(M.nextSleep):'Tap when he sleeps');
+  $('v3acts').className='v3-acts'+(vit?'':' three');
+  $('v3acts').innerHTML=B('feed'+(side==='Left'?' on':''),'L','Left',side==='Left'?'Suggested side':'Feed',"log('Left')")+
+    B('feed'+(side==='Right'?' on':''),'R','Right',side==='Right'?'Suggested side':'Feed',"log('Right')")+
+    B('sleep'+(asleep?' on':''),asleep?V3I.sun:V3I.moon,asleep?'Woke up':'Fell asleep',sleepSub,'toggleSleep()')+
+    (vit?B('vit'+(td.length?' done':late?' late':''),td.length?V3I.check:V3I.pill,'Vitamin D',td.length?'Given '+hm(td[0].t):'Not given yet','vitTap()'):'');
+  var le=M.lastEntry;
+  $('v3links').innerHTML='<button onclick="openEarlier(\'feed\')">+ Earlier feed</button><button onclick="openEarlier(\'sleep\')">+ Earlier sleep</button>'+
+    (le?'<button class="'+(undoArmed>n?'arm':'')+'" onclick="undoLast()">'+(undoArmed>n?'Undo '+label(le)+' '+hm(le.t)+'?':'Undo '+hm(le.t))+'</button>':'');
+
+  // today as one line: sleep blocks, feeds as dots, the rest of the day as expected naps
+  var e1=new Date(d0); e1.setDate(e1.getDate()+1); var d1=e1.getTime(), pc=function(t){return Math.max(0,Math.min(100,(t-d0)/(d1-d0)*100))};
+  var sl=allSleeps(n).filter(function(x){return x.end>d0&&x.start<d1}), tr='', top='';
+  [6,12,18].forEach(function(hh){ tr+='<i class="v3g" style="left:'+pc(d0+hh*HOUR)+'%"></i>'; });
+  sl.forEach(function(x){ tr+='<i class="v3s'+((x.kind||'')==='Nap'||isNap(x)?' nap':'')+'" style="left:'+pc(x.start)+'%;width:'+Math.max(.7,pc(x.end)-pc(x.start))+'%"></i>'; });
+  plan.forEach(function(p){ var a=p.wake?n:p.t; tr+='<i class="v3p" style="left:'+pc(a)+'%;width:'+Math.max(.7,pc(p.e)-pc(a))+'%"></i>'; });
+  var fdT=M.feeds.filter(function(f){return f.start>=d0&&f.start<d1});
+  fdT.forEach(function(f){ top+='<i class="v3f" style="left:'+pc(f.start)+'%"></i>'; });
+  if(nf&&nf.t>n&&nf.t<d1) top+='<i class="v3f next" style="left:'+pc(nf.t)+'%"></i>';
+  var napsT=sl.filter(function(x){return isNap(x)&&x.start>=d0}).length;
+  var totT=sl.reduce(function(a,x){return a+Math.min(x.end,n)-Math.max(x.start,d0)},0);
+  $('v3day').innerHTML='<div class="v3-h"><b>Today</b><button onclick="tab(\'days\')">Days ›</button></div>'+
+    '<div class="v3-tl" onclick="v3Tap(event)"><div class="trk">'+tr+'</div>'+top+'<i class="v3now" style="left:'+pc(n)+'%"></i></div>'+
+    '<div class="v3-ax"><span style="left:0">00</span><span style="left:25%">06</span><span style="left:50%">12</span><span style="left:75%">18</span><span style="left:100%">24</span></div>'+
+    '<div class="v3-key"><span><i></i>Sleep</span>'+(plan.length?'<span><i class="p"></i>Expected</span>':'')+'<span><i class="f"></i>Feed</span></div>'+
+    '<div class="v3-stats"><div><b>'+fdT.length+'</b><span>Feeds</span>'+(us?'<small>usually '+us.feeds+'</small>':'')+'</div>'+
+    '<div><b>'+napsT+'</b><span>Naps</span>'+(us?'<small>usually '+us.naps+'</small>':'')+'</div>'+
+    '<div><b>'+(totT?dur(totT,true):'0m')+'</b><span>Sleep</span>'+(us?'<small>usually ~'+Math.round(us.total/HOUR)+'h</small>':'')+'</div></div>';
+  V3DAY={d0:d0,d1:d1,sl:sl,plan:plan,fd:fdT,nf:nf,n:n};
+
+  // last night (mornings)
+  var ln=$('v3night'), m=minsOfDay(n), last=null;
+  if(m>=4*60&&m<14*60){ var ends=M.sleeps.filter(function(x){return x.kind==='Night'&&x.end>=d0+3*HOUR&&x.end<=n}); last=ends[ends.length-1]; }
+  if(last){ var segs=M.sleeps.filter(function(x){return x.kind==='Night'&&x.start>=d0-9*HOUR&&x.end<=last.end});
+    var bed=Math.min.apply(null,segs.map(function(x){return x.bedStart||x.start})), slept=segs.reduce(function(a,x){return a+x.dur},0);
+    var nfd=M.feeds.filter(function(f){return f.start>bed&&f.start<last.end}), mx=0;
+    segs.forEach(function(sg){ var pts=[sg.start].concat(nfd.filter(function(f){return f.start>sg.start&&f.start<sg.end}).map(function(f){return f.start})).concat([sg.end]);
+      for(var i=1;i<pts.length;i++)mx=Math.max(mx,pts[i]-pts[i-1]); });
+    ln.hidden=false;
+    ln.innerHTML='<div class="v3-h"><b>Last night</b><span>'+hm(bed)+' → '+hm(last.end)+'</span></div>'+
+      '<div class="v3-stats" style="margin-top:0;padding-top:0;border-top:0"><div><b>'+dur(slept,true)+'</b><span>Asleep</span></div><div><b>'+nfd.length+'</b><span>Feeds</span><small>in the night</small></div><div><b>'+dur(mx,true)+'</b><span>Longest</span><small>between feeds</small></div></div>';
+  } else ln.hidden=true;
+
+  // latest entries – tap to change or delete
+  var items=[];
+  M.feeds.slice(-6).forEach(function(f){items.push({t:f.start,kind:'feed',ref:f,html:feedItem(f)})});
+  allSleeps(n).slice(-4).forEach(function(x){items.push({t:x.start,kind:'sleep',ref:x,html:sleepItem(x,n)})});
+  M.vits.slice(-2).forEach(function(x){items.push({t:x.t,kind:'vit',ref:x,html:'<div class="ico" style="background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)">'+V3I.check.replace('<svg ','<svg width="17" height="17" ')+'</div><div class="t"><b>Vitamin D</b><span>given</span></div><div class="tm">'+hm(x.t)+'</div>'})});
+  items.sort(function(a,b){return b.t-a.t}); items=items.slice(0,5); V3ITEMS=items;
+  $('v3recent').innerHTML='<div class="v3-h"><b>Latest</b><button onclick="tab(\'days\')">All ›</button></div>'+
+    (items.length?items.map(function(it,i){ return '<div class="row tap" onclick="openV3('+i+')">'+it.html.replace('<div class="tm">','<div class="tm">'+(it.t<d0?'<small style="color:var(--muted);font-weight:500">'+new Date(it.t).toLocaleDateString('en-GB',{weekday:'short'})+' </small>':''))+'<span class="chev">›</span></div>'; }).join(''):'<div class="empty">Nothing logged yet.</div>');
+}
+var V3DAY=null;
+function v3Tap(ev){ if(!V3DAY)return; var r=ev.currentTarget.getBoundingClientRect(), D=V3DAY, t=D.d0+(ev.clientX-r.left)/r.width*(D.d1-D.d0), tol=(D.d1-D.d0)/60, msg='';
+  var s0=D.sl.filter(function(x){return t>=x.start-tol&&t<=x.end+tol})[0], f0=D.fd.filter(function(f){return Math.abs(f.start-t)<=tol})[0], p0=D.plan.filter(function(p){return t>=(p.wake?D.n:p.t)-tol&&t<=p.e+tol})[0];
+  if(f0&&(ev.clientY-r.top)<14) msg='Feed '+hm(f0.start)+(f0.side?' · '+f0.side:'');
+  else if(s0) msg=(s0.kind==='Night'?'Night sleep ':'Nap ')+hm(s0.start)+'–'+(s0.b===null?'now':hm(s0.end))+' · '+dur(s0.end-s0.start,true);
+  else if(p0) msg=p0.wake?'Likely awake ~'+hm(p0.e):(p0.next?'Next nap ~':'Expected nap ~')+hm(p0.t);
+  else if(f0) msg='Feed '+hm(f0.start)+(f0.side?' · '+f0.side:'');
+  else if(D.nf&&Math.abs(D.nf.t-t)<=tol) msg='Next feed ~'+hm(D.nf.t);
+  else msg=hm(t);
+  toast(msg,2400); }
+
 function newLayout(){
   document.documentElement.classList.add('look-new'); $('dial').hidden=false;
   var fc=$('feedCard'), sc=$('sleepCard'), sec=fc.parentNode;
@@ -2284,7 +2545,7 @@ function openSettings(){
   if(!DATA)return; var S=DATA.settings, n=now();
   var ageW=(n-parseLocal(S.birth+'T00:00:00'))/(7*DAY), cur=0; S.ageTable.forEach(function(r,i){ if(ageW>=r[0]) cur=i; });
   var h='<h3>Settings</h3>'+
-    '<div class="setgrp" style="margin-top:8px"><div>Look on this phone</div><div class="setrow"><span>Main screen<small>Only changes this phone</small></span><div style="width:170px;flex:none">'+seg('s_look',['New','Classic'],LOOK==='new'?'New':'Classic')+'</div></div></div>'+
+    '<div class="setgrp" style="margin-top:8px"><div>Look on this phone</div><div class="setrow"><span>Main screen<small>Only changes this phone</small></span><div style="width:210px;flex:none">'+seg('s_look',['Today','Ring','Classic'],LOOK==='v3'?'Today':LOOK==='new'?'Ring':'Classic')+'</div></div></div>'+
     '<div class="sh-sub" style="margin-top:14px">Everything below is shared by everyone using the app.</div>'+
     '<div class="setgrp"><div>Baby</div>'+sr('s_birth','Birth date','He is '+Math.floor(ageW)+' weeks old','date',S.birth)+'</div>'+
     '<div class="setgrp"><div>Night</div>'+sr('s_ns','Night starts','Sleep after this counts as night','time',S.nightStart)+sr('s_ne','Night ends','','time',S.nightEnd)+'</div>'+
@@ -2307,7 +2568,7 @@ function openSettings(){
     '</div><div class="hint" style="text-align:left">A rough general guide used until his own data takes over. Highlighted = his age now.</div></div>'+
     acts('saveSettingsUI()');
   openSheet(h);
-  $('s_look').onpick=function(v){ var nv=v==='New'?'new':'classic'; if(nv!==LOOK) setLook(nv); };
+  $('s_look').onpick=function(v){ var nv=v==='Today'?'v3':v==='Ring'?'new':'classic'; if(nv!==LOOK) setLook(nv); };
 }
 var WSET=null;
 function openWidgetSetup(renew){
@@ -2374,7 +2635,7 @@ function saveSettingsUI(){
 
 var tt; function toast(t,ms,html){ var el=$('toast'); if(html)el.innerHTML=t; else el.textContent=t; el.classList.add('on'); clearTimeout(tt); tt=setTimeout(function(){el.classList.remove('on')},ms||2200); }
 
-if(LOOK==='new') newLayout();
+if(LOOK==='v3') v3Init(); else if(LOOK==='new') newLayout();
 tab(TAB);
 refresh();
 applyNight();
