@@ -586,7 +586,7 @@ html.night.look-v3{--bg:#000; --card:#140A08; --ink:#E7A094; --muted:#8C564D; --
   --feed:#F0846C; --feed-soft:#2A120E; --sleep:#D98A74; --sleep-soft:#24110D;
   --ok:#C98A62; --warn:#E39552; --bad:#F06C5A; --warn-soft:#2B1708; --bad-soft:#2D0F0B; --shadow:none}
 html.look-v3 body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
-html.look-v3 .wrap{padding-top:calc(env(safe-area-inset-top) + 8px);padding-bottom:calc(124px + env(safe-area-inset-bottom))}
+html.look-v3 .wrap{padding-top:calc(env(safe-area-inset-top) + 34px);padding-bottom:calc(124px + env(safe-area-inset-bottom))}
 html.look-v3 section[data-tab="now"]>*:not(#v3){display:none!important}
 html.look-v3 .top{align-items:center;margin:4px 2px 0}
 .v3-sub{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 2px 16px}
@@ -2169,7 +2169,7 @@ function renderV3(n){
   h+='</div><div class="v3-tile sleep">';
   if(st==='Asleep'){ var night=M.curKind(n)==='Night';
     h+='<div class="v3-lab"><i></i>'+(night?'Asleep · night':'Napping')+'</div><div class="v3-big">'+bigDur(n-M.since)+'</div><div class="v3-meta">since '+hm(M.since)+'</div>';
-    if(night){ if(us&&us.up!=null){ var up=d0+us.up*MIN; if(up<n)up+=DAY; h+='<div class="v3-next"><span>Usually up</span><b>~'+fmtTod(us.up)+'</b><em>in '+dur(up-n,true)+'</em></div>'; } }
+    if(night){ if(us&&us.up!=null){ var up=d0+us.up*MIN; if(up<n-12*HOUR)up+=DAY; if(up>n+12*HOUR)up-=DAY; h+='<div class="v3-next"><span>Usually up</span><b>~'+fmtTod(us.up)+'</b><em>'+(up>=n?'in '+dur(up-n,true):dur(n-up,true)+' ago')+'</em></div>'; } }
     else if(plan[0]&&plan[0].wake) h+='<div class="v3-next"><span>Likely awake</span><b>~'+hm(plan[0].e)+'</b><em>in '+dur(plan[0].e-n,true)+'</em></div>';
   } else if(st==='Awake'){
     h+='<div class="v3-lab"><i></i>Awake</div><div class="v3-big">'+bigDur(n-M.since)+'</div><div class="v3-meta">since '+hm(M.since)+'</div>';
@@ -2182,7 +2182,7 @@ function renderV3(n){
   // the four buttons
   var vit=S.vitOn!==false, td=vit?vitToday(n):[], late=vit&&!td.length&&minsOfDay(n)>=toMin(S.vitTime||'10:00'), asleep=st==='Asleep';
   function B(cls,ic,t,sub,fn){ return '<button class="v3-btn '+cls+'" onclick="'+fn+'"><span class="ic">'+ic+'</span><span class="tx"><b>'+t+'</b><small>'+sub+'</small></span></button>'; }
-  var sleepSub=asleep?'Asleep '+dur(n-M.since,true):(M.nextSleep&&M.kindNow!=='Night'&&M.kindNow!=='Evening'?(M.isBedtime?'Bedtime ~':'Nap ~')+hm(M.nextSleep):'Tap when he sleeps');
+  var sleepSub=asleep?'Since '+hm(M.since):(M.nextSleep&&M.kindNow!=='Night'&&M.kindNow!=='Evening'?(M.isBedtime?'Bedtime ~':'Nap ~')+hm(M.nextSleep):'Tap when he sleeps');
   $('v3acts').className='v3-acts'+(vit?'':' three');
   $('v3acts').innerHTML=B('feed'+(side==='Left'?' on':''),'L','Left',side==='Left'?'Suggested side':'Feed',"log('Left')")+
     B('feed'+(side==='Right'?' on':''),'R','Right',side==='Right'?'Suggested side':'Feed',"log('Right')")+
