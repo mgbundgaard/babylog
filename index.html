@@ -2137,8 +2137,10 @@ function planNaps(n){
   var ww=(M.dayWW||100)*MIN;
   if(M.state==='Awake'&&M.nextSleep&&!M.isBedtime&&M.kindNow!=='Night'&&M.kindNow!=='Evening'){ t=Math.max(M.nextSleep,n); out.push({t:t,e:t+nl,next:true}); t+=nl+ww; }
   else if(M.state==='Asleep'&&M.curKind(n)==='Nap'){ var we=Math.max(n+5*MIN,M.since+nl); out.push({t:n,e:we,wake:true}); t=we+ww; }
+  else if(M.state==='Awake'&&M.isBedtime&&M.nextSleep&&M.kindNow!=='Night'){ out.push({t:Math.max(M.nextSleep,n),e:startOfDay(n)+DAY,bed:true,next:true}); return out; }
   else return out;
   for(var k=0;k<4&&t+20*MIN<bedT-45*MIN;k++){ out.push({t:t,e:Math.min(t+nl,bedT)}); t+=nl+ww; }
+  out.push({t:Math.max(bedT,t-ww,n),e:startOfDay(n)+DAY,bed:true});
   return out;
 }
 function v3Usual(n){ // averages over the last 7 full days
@@ -2182,7 +2184,7 @@ function renderV3(n){
   // the four buttons
   var vit=S.vitOn!==false, td=vit?vitToday(n):[], late=vit&&!td.length&&minsOfDay(n)>=toMin(S.vitTime||'10:00'), asleep=st==='Asleep';
   function B(cls,ic,t,sub,fn){ return '<button class="v3-btn '+cls+'" onclick="'+fn+'"><span class="ic">'+ic+'</span><span class="tx"><b>'+t+'</b><small>'+sub+'</small></span></button>'; }
-  var sleepSub=asleep?'Since '+hm(M.since):(M.nextSleep&&M.kindNow!=='Night'&&M.kindNow!=='Evening'?(M.isBedtime?'Bedtime ~':'Nap ~')+hm(M.nextSleep):'Tap when he sleeps');
+  var sleepSub=asleep?'Since '+hm(M.since):(M.nextSleep&&M.kindNow!=='Night'&&M.kindNow!=='Evening'?(M.isBedtime?'Bed ~':'Nap ~')+hm(M.nextSleep):'Tap when he sleeps');
   $('v3acts').className='v3-acts'+(vit?'':' three');
   $('v3acts').innerHTML=B('feed'+(side==='Left'?' on':''),'L','Left',side==='Left'?'Suggested side':'Feed',"log('Left')")+
     B('feed'+(side==='Right'?' on':''),'R','Right',side==='Right'?'Suggested side':'Feed',"log('Right')")+
@@ -2239,7 +2241,7 @@ function v3Tap(ev){ if(!V3DAY)return; var r=ev.currentTarget.getBoundingClientRe
   var s0=D.sl.filter(function(x){return t>=x.start-tol&&t<=x.end+tol})[0], f0=D.fd.filter(function(f){return Math.abs(f.start-t)<=tol})[0], p0=D.plan.filter(function(p){return t>=(p.wake?D.n:p.t)-tol&&t<=p.e+tol})[0];
   if(f0&&(ev.clientY-r.top)<14) msg='Feed '+hm(f0.start)+(f0.side?' · '+f0.side:'');
   else if(s0) msg=(s0.kind==='Night'?'Night sleep ':'Nap ')+hm(s0.start)+'–'+(s0.b===null?'now':hm(s0.end))+' · '+dur(s0.end-s0.start,true);
-  else if(p0) msg=p0.wake?'Likely awake ~'+hm(p0.e):(p0.next?'Next nap ~':'Expected nap ~')+hm(p0.t);
+  else if(p0) msg=p0.bed?'Bedtime ~'+hm(p0.t):p0.wake?'Likely awake ~'+hm(p0.e):(p0.next?'Next nap ~':'Expected nap ~')+hm(p0.t);
   else if(f0) msg='Feed '+hm(f0.start)+(f0.side?' · '+f0.side:'');
   else if(D.nf&&Math.abs(D.nf.t-t)<=tol) msg='Next feed ~'+hm(D.nf.t);
   else msg=hm(t);
