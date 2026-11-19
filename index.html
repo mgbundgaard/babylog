@@ -695,6 +695,9 @@ html.look-v3 .tabs button{border-radius:16px;padding:7px 0}
 html.look-v3 .tabs button.on{background:color-mix(in srgb,var(--sleep) 13%,transparent);color:var(--sleep)}
 html.look-v3 .sumbtn{border-radius:var(--r)}
 html.look-v3 #undoBtn{display:none}
+button,.tap,[onclick]{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.v3-btn:active{filter:brightness(.94)}
+.v3-links button:active,.v3-h button:active{opacity:.55}
 </style>
 </head>
 <body>
@@ -1831,51 +1834,68 @@ function renderPatterns(n){
 /* ---------- server ---------- */
 function setSync(s,txt){ $('dot').className='dot'+(s?' '+s:''); $('synctxt').textContent=txt; }
 /* taps made without a connection wait on the phone and are sent later */
-var QKEY='babylog_queue', QUEUE=[], flushing=false;
+var QKEY='babylog_queue', QUEUE=[], flushing=false, QN=0, FAILS=0, LASTSEND=null, RETRY=null;
+// every tap goes into this list first (kept on the phone), so a tap is never lost or ignored; it is sent in the background, in order
 try{ QUEUE=JSON.parse(localStorage.getItem(QKEY)||'[]')||[]; }catch(e){ QUEUE=[]; }
+QUEUE.forEach(function(q){ if(!q[2]) q[2]='o'+(QN++); if(q[4]==null) q[4]=0; });
 function saveQ(){ try{ localStorage.setItem(QKEY,JSON.stringify(QUEUE)); }catch(e){} }
 function withQueue(data){ if(!QUEUE.length||!data)return data; var d=JSON.parse(JSON.stringify(data));
   QUEUE.forEach(function(q){ d.rows.push([q[0],q[0].substr(11,5)+' '+q[1]]); }); return d; }
-function syncLabel(){ if(QUEUE.length) setSync('busy',QUEUE.length+' waiting to save'); else setSync('', /look-(new|v3)/.test(document.documentElement.className)?'Synced':'Updated '+hm(now())); }
+// a tap the Sheet already has (the answer got lost on the way back) is not sent twice
+function dropSaved(data){ if(!QUEUE.length||!data)return; var n0=QUEUE.length;
+  QUEUE=QUEUE.filter(function(q){ if(!q[3]) return true; var t=parseLocal(q[0]);
+    return !data.rows.some(function(r){ return String(r[1]).slice(6)===q[1]&&Math.abs(parseLocal(r[0])-t)<=(q[3]==='live'?120000:3000); }); });
+  if(QUEUE.length!==n0) saveQ(); }
+function syncLabel(){ if(QUEUE.length) setSync('busy',flushing?'Saving…':QUEUE.length+' waiting to save'); else setSync('', /look-(new|v3)/.test(document.documentElement.className)?'Synced':'Updated '+hm(now())); }
 function apply(data){
-  DATA=data; skew=parseLocal(data.now)-Date.now(); M=build(withQueue(data)); render(); syncLabel();
+  dropSaved(data); DATA=data; skew=parseLocal(data.now)-Date.now(); M=build(withQueue(data)); render(); syncLabel();
 }
 function flushQueue(){
-  if(!QUEUE.length||flushing)return; flushing=true; var sending=QUEUE.slice();
-  google.script.run.withSuccessHandler(function(d){ flushing=false;
-      QUEUE=QUEUE.slice(sending.length); saveQ(); apply(d); toast('Saved '+sending.length+' entr'+(sending.length>1?'ies':'y')+' from when you were offline'); if(QUEUE.length) flushQueue(); })
-    .withFailureHandler(function(){ flushing=false; syncLabel(); })
-    .applyEdits(sending.map(function(q){return {op:'add',kind:q[1],iso:q[0]}}));
+  if(!QUEUE.length||flushing)return; clearTimeout(RETRY); flushing=true;
+  var sending=QUEUE.slice(), ids=sending.map(function(q){return q[2]}), ls=LASTSEND;
+  // a fresh single tap is written with the Sheet's own clock, like before; anything else keeps the time it was tapped
+  var live=ls&&FAILS===0&&sending.length===ls.ids.length&&ls.ids.every(function(id){return ids.indexOf(id)>=0})&&Date.now()-ls.tap<20000;
+  sending.forEach(function(q){ q[3]=live?'live':'add'; }); saveQ(); syncLabel();
+  function ok(d){ flushing=false; FAILS=0; var old=sending.filter(function(q){return Date.now()-q[4]>60000}).length;
+    QUEUE=QUEUE.filter(function(q){return ids.indexOf(q[2])<0}); saveQ(); apply(d);
+    if(ls&&LASTSEND===ls&&ls.ids.every(function(id){return ids.indexOf(id)>=0})){ LASTSEND=null;
+      if(ls.kinds[0]!=='UNDO'&&Date.now()-ls.tap<15000){ LASTLOG=findLogged(d,ls.kinds,ls.t0); if(LASTLOG) fixToast(ls.label,ls.kinds); } }
+    else if(old) toast('Saved '+old+' entr'+(old>1?'ies':'y')+' from when you were offline');
+    if(QUEUE.length) flushQueue(); }
+  function bad(){ flushing=false; FAILS++; syncLabel();
+    if(FAILS===1) toast('No connection – kept on the phone, saves automatically');
+    RETRY=setTimeout(function(){ if(QUEUE.length) refresh(); },Math.min(60000,5000*FAILS)); }
+  var r=google.script.run.withSuccessHandler(ok).withFailureHandler(bad);
+  if(live) r.logEvents(sending.map(function(q){return q[1]}));
+  else r.applyEdits(sending.map(function(q){return {op:'add',kind:q[1],iso:q[0]}}));
 }
 function refresh(){
-  if(busy)return; setSync('busy','Updating…');
+  if(flushing)return; setSync('busy',QUEUE.length?'Saving…':'Updating…');
   google.script.run.withSuccessHandler(function(d){ apply(d); flushQueue(); })
-    .withFailureHandler(function(e){ if(QUEUE.length) syncLabel(); else setSync('err','Offline – tap to retry'); }).getData();
+    .withFailureHandler(function(e){ if(QUEUE.length){ FAILS++; syncLabel(); } else setSync('err','Offline – tap to retry'); }).getData();
 }
-var LASTLOG=null;
+var LASTLOG=null, HAP=null;
+// a small tick on tap (iPhone: through a hidden switch, which iOS answers with a haptic)
+function haptic(){ try{ if(navigator.vibrate){ navigator.vibrate(12); return; }
+  if(!HAP){ HAP=document.createElement('label'); HAP.setAttribute('aria-hidden','true'); HAP.style.cssText='position:fixed;left:-200px;top:0;opacity:0;pointer-events:none';
+    HAP.innerHTML='<input type="checkbox" switch tabindex="-1">'; document.body.appendChild(HAP); }
+  HAP.click(); }catch(e){} }
 function log(kind){ logMany([kind]); }
 function wakeFeed(side){ logMany(['Awake',side]); }
 function nowIso(off){var d=new Date(now()+(off||0));return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds())}
 function logMany(kinds){
-  if(busy)return;
   // ignore an accidental double tap on the same feed button
   var le=M&&M.lastEntry;
-  if(kinds.length===1&&le&&le.type==='Feed'&&le.side===kinds[0]&&now()-le.t<90*1000){ toast('Already logged '+kinds[0]+' at '+hm(le.t)); return; } busy=true; undoArmed=0; LASTLOG=null;
-  try{navigator.vibrate&&navigator.vibrate(15)}catch(e){}
-  var t0=now();
-  // show it straight away, then sync
-  if(DATA){ var pending=JSON.parse(JSON.stringify(DATA));
-    kinds.forEach(function(k,i){ pending.rows.push([nowIso(i*1000),hm(t0)+' '+k]); }); M=build(pending); render(); }
+  if(kinds.length===1&&le&&le.type==='Feed'&&le.side===kinds[0]&&now()-le.t<90*1000){ toast('Already logged '+kinds[0]+' at '+hm(le.t)); return; }
+  undoArmed=0; LASTLOG=null; haptic();
+  var t0=now(), ids=[];
+  kinds.forEach(function(k,i){ var id='t'+Date.now().toString(36)+(QN++); ids.push(id); QUEUE.push([nowIso(i*1000),k,id,0,Date.now()]); }); saveQ();
+  // show it straight away, then save in the background
+  if(DATA){ M=build(withQueue(DATA)); render(); }
   var names={Left:'Feed · Left',Right:'Feed · Right',Both:'Feed · Both',Asleep:'Asleep',Awake:'Awake',UNDO:'Undone','Vitamin D':'Vitamin D given'};
   var label=kinds.map(function(k){return names[k]}).join(' + ')+' · '+hm(t0);
-  function queueIt(msg){ kinds.forEach(function(k,i){ QUEUE.push([nowIso(i*1000),k]); }); saveQ(); busy=false;
-    if(DATA){M=build(withQueue(DATA));render()} syncLabel(); toast(msg); }
-  if(QUEUE.length){ queueIt(label); flushQueue(); return; }
-  toast(label); setSync('busy','Saving…');
-  google.script.run.withSuccessHandler(function(data){ busy=false; apply(data);
-      if(kinds[0]!=='UNDO'){ LASTLOG=findLogged(data,kinds,t0); if(LASTLOG) fixToast(label,kinds); } })
-    .withFailureHandler(function(e){ queueIt('No connection – kept on the phone, saves automatically'); })
-    .logEvents(kinds);
+  LASTSEND={ids:ids,kinds:kinds,t0:t0,label:label,tap:Date.now()};
+  toast(label); syncLabel(); flushQueue();
 }
 // find the rows we just wrote (newest matching rows within a few minutes)
 function findLogged(data,kinds,t0){
@@ -1913,6 +1933,7 @@ function undoLast(){
   if(!M||!M.lastEntry||busy)return;
   if(undoArmed>now()){ undoArmed=0; var le=M.lastEntry;
     if(!le.row){ // still waiting on the phone
+      if(flushing){ toast('Saving it – try undo again in a second'); return; }
       for(var i=QUEUE.length-1;i>=0;i--){ if(QUEUE[i][0]===le.iso){ QUEUE.splice(i,1); break; } }
       saveQ(); M=build(withQueue(DATA)); render(); syncLabel(); toast('Undone'); return; }
     busy=true; toast('Undoing…'); setSync('busy','Saving…');
@@ -2637,6 +2658,7 @@ function saveSettingsUI(){
 
 var tt; function toast(t,ms,html){ var el=$('toast'); if(html)el.innerHTML=t; else el.textContent=t; el.classList.add('on'); clearTimeout(tt); tt=setTimeout(function(){el.classList.remove('on')},ms||2200); }
 
+document.addEventListener('touchstart',function(){},{passive:true});
 if(LOOK==='v3') v3Init(); else if(LOOK==='new') newLayout();
 tab(TAB);
 refresh();
