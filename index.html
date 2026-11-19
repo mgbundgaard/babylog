@@ -2590,6 +2590,7 @@ function openSettings(){
       S.ageTable.map(function(r,i){return '<label class="'+(i===cur?'cur':'')+'">'+(r[0]?r[0]+'+ wks':'Newborn')+'<input id="s_age'+i+'" type="number" inputmode="numeric" value="'+r[1]+'"></label>'}).join('')+
     '</div><div class="hint" style="text-align:left">A rough general guide used until his own data takes over. Highlighted = his age now.</div></div>'+
     acts('saveSettingsUI()');
+  try{ var el=JSON.parse(localStorage.getItem('babylog_err')||'[]'); if(el.length) h+='<div style="margin-top:14px;font-size:11.5px;color:var(--muted);word-break:break-all"><b>Recent app errors</b> (send a screenshot to Claude)<br>'+el.map(esc).join('<br>')+'</div>'; }catch(x){}
   openSheet(h);
   $('s_look').onpick=function(v){ var nv=v==='Today'?'v3':v==='Ring'?'new':'classic'; if(nv!==LOOK) setLook(nv); };
 }
@@ -2682,7 +2683,14 @@ window.addEventListener('online',function(){ refresh(); });
       b.innerHTML='Add it to your home screen: tap <b>Share</b> ⬆︎ then <b>Add to Home Screen</b>.<button aria-label="Close">×</button>';
       b.querySelector('button').onclick=function(){ b.remove(); try{ localStorage.setItem('babylog_a2hs','1'); }catch(e){} };
       document.body.appendChild(b); } }
-  if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function(){});
+  if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(function(){});
+    // a new version was downloaded in the background: use it the next time the app is opened, or now if she taps
+    var upd=false;
+    navigator.serviceWorker.addEventListener('message',function(e){ if(!e.data||e.data.type!=='babylog-update'||upd)return; upd=true;
+      toast('<span class="tt">New version of the app</span><button onclick="location.reload()">Update</button>',8000,true); });
+    document.addEventListener('visibilitychange',function(){ if(document.hidden&&upd&&!flushing) location.reload(); }); }
+  // keep the last few errors so they can be looked at (Settings → bottom)
+  window.addEventListener('error',function(e){ try{ var l=JSON.parse(localStorage.getItem('babylog_err')||'[]'); l.push(new Date().toISOString().slice(0,16)+' '+(e.message||'')+' @'+(e.lineno||'')); localStorage.setItem('babylog_err',JSON.stringify(l.slice(-5))); }catch(x){} });
 })();
 </script>
 </body>
