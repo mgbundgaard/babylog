@@ -204,6 +204,11 @@ h2{font-size:15px;margin:18px 4px 8px;color:var(--muted);font-weight:700;text-tr
 .seg button{flex:1;border:0;background:none;font:inherit;font-weight:700;font-size:15px;color:var(--muted);padding:10px 4px;border-radius:11px}
 .seg button.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
 @media (prefers-color-scheme: dark){.seg button.on{background:var(--line)}}
+.tctl{display:flex;align-items:center;gap:8px}
+.tctl input{flex:1;min-width:0;text-align:center;font:inherit;font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;padding:10px 8px;border-radius:14px;border:1px solid var(--line);background:var(--bg);color:var(--ink);-webkit-appearance:none;appearance:none;min-height:52px}
+.tctl button{flex:none;width:56px;height:52px;border-radius:14px;border:1px solid var(--line);background:none;color:var(--ink);font:inherit;font-size:16px;font-weight:700}
+.tctl button:active{background:var(--line)}
+.tday{font-size:12.5px;color:var(--muted);text-align:center;margin-top:5px;min-height:15px}
 .dt{width:100%;font:inherit;font-size:18px;font-weight:600;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--bg);color:var(--ink);-webkit-appearance:none;appearance:none}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .chips button{border:1px solid var(--line);background:none;color:var(--ink);font:inherit;font-size:14px;font-weight:600;padding:8px 12px;border-radius:99px}
@@ -2122,45 +2127,61 @@ function deleteItem(){
     (it.ref.mid||[]).forEach(function(e){ if(e&&e.row) ops.push({op:'delete',row:e.row,iso:e.iso}); }); }
   RM={}; send(ops,'Deleted');
 }
-// "Log an earlier time": if you just pressed (within 2 h), the chips move THAT press back ("10 min before you pressed")
-// instead of adding a second entry; otherwise they count back from now and a new entry is added.
-var EFIX=null;
+// "Add something you forgot": pick what happened and a time (time only – today, or last night if that time hasn't come yet).
+// If it is the same kind as your last press (within 2 h), it moves that press instead of adding a second one.
+var EFIX=null, EWHICH='sleep';
+var EK={'Fell asleep':'Asleep','Woke up':'Awake','Left':'Left','Right':'Right'};
+function hhmm(t){var d=new Date(t);return pad(d.getHours())+':'+pad(d.getMinutes());}
+function timeCtl(id,t){ return '<div class="tctl"><button type="button" onclick="tstep(\''+id+'\',-5)">−5</button><input type="time" id="'+id+'" value="'+hhmm(t)+'"><button type="button" onclick="tstep(\''+id+'\',5)">+5</button></div><div class="tday" id="'+id+'_d"></div>'; }
+function readT(id){ var v=$(id)&&$(id).value; if(!v||!/^\d\d:\d\d/.test(v))return null; var n=now(), d=new Date(n);
+  d.setHours(+v.substr(0,2),+v.substr(3,2),0,0); var t=d.getTime(); if(t>n+MIN) t-=DAY; return t; }
+function tday(id){ var t=readT(id), el=$(id+'_d'); if(!el)return; el.textContent=t==null?'':(t<startOfDay(now())?'Yesterday · ':'Today · ')+dur(now()-t,true)+' ago'; }
+function setT(id,t){ $(id).value=hhmm(t); tday(id); }
+function tstep(id,m){ var t=readT(id); if(t==null)return; setT(id,Math.min(now(),t+m*MIN)); ecUpdate(); }
+function ecUpdate(){ Array.prototype.forEach.call(document.querySelectorAll('#eChips button'),function(x){ x.classList.toggle('on',+x.getAttribute('data-t')===readT('ea')); }); }
 function openEarlier(which){
-  var n=now(), le=M&&M.lastEntry, fixable=le&&le.row&&n-le.t<2*HOUR&&(which==='feed'?le.type==='Feed'&&(le.side==='Left'||le.side==='Right'):(le.type==='Asleep'||le.type==='Awake'));
-  EFIX=fixable?le:null;
-  var kinds=which==='feed'?['Left','Right']:['Asleep','Awake','Whole nap'];
-  var def=EFIX?(which==='feed'?EFIX.side:EFIX.type):(which==='feed'?'Left':(M&&M.state==='Asleep'?'Awake':'Asleep'));
-  var h='<h3>'+(which==='feed'?'Log an earlier feed':'Log an earlier time')+'</h3><div class="sh-sub" id="eSub"></div>'+
+  EWHICH=which; var n=now(), le=M&&M.lastEntry;
+  var kinds=which==='feed'?['Left','Right']:['Fell asleep','Woke up','Whole nap'];
+  // default: the thing you most likely forgot – the opposite of what the app thinks now
+  var def=which==='feed'?(M&&M.feeds.length&&M.feeds[M.feeds.length-1].first==='Left'?'Right':'Left'):(M&&M.state==='Asleep'?'Woke up':'Fell asleep');
+  var ctx=which==='feed'?(M&&M.feeds.length?'Last feed logged at <b>'+hm(M.feeds[M.feeds.length-1].start)+'</b>.':''):
+    (M&&M.state==='Asleep'?'Logged as <b>asleep</b> since '+hm(M.since)+'.':M&&M.state==='Awake'?'Logged as <b>awake</b> since '+hm(M.since)+'.':'');
+  var h='<h3>'+(which==='feed'?'Add a feed you forgot':'Add a sleep you forgot')+'</h3><div class="sh-sub" id="eSub">'+ctx+'</div>'+
     '<div class="fld"><label>What happened</label>'+seg('ek',kinds,def)+'</div>'+
-    '<div class="fld" id="fa"><label id="faL"></label>'+dtInput('ea',n-15*MIN)+'<div class="chips" id="eChips"></div></div>'+
-    '<div class="fld" id="fb" hidden><label>He woke up at</label>'+dtInput('eb',n)+nudges('eb')+'</div>'+
-    acts('saveEarlier()','Add');
+    '<div class="fld" id="fa"><label id="faL"></label>'+timeCtl('ea',n-15*MIN)+'<div class="chips" id="eChips"></div></div>'+
+    '<div class="fld" id="fb" hidden><label>He woke up at</label>'+timeCtl('eb',n)+'</div>'+
+    '<div class="sh-sub" id="eFix" style="margin:4px 0 0"></div>'+acts('saveEarlier()','Add');
   openSheet(h);
   $('ek').onpick=function(v){
-    var fix=EFIX&&(v===EFIX.type||v===EFIX.side);
+    var k=EK[v]||v; EFIX=(le&&le.row&&n-le.t<2*HOUR&&(k===le.type||k===le.side))?le:null;
     $('fb').hidden=v!=='Whole nap';
-    $('faL').textContent=v==='Awake'?'He woke up at':(v==='Asleep'||v==='Whole nap')?'He fell asleep at':'Feed started at';
-    $('eSub').innerHTML=fix?'Moves your <b>'+hm(EFIX.t)+'</b> press to the right time – no extra entry.':'For when you forgot to press. Adds a new entry.';
-    var base=fix?EFIX.t:n;
-    $('eChips').innerHTML=[5,10,15,20,30,45,60].map(function(m){ return '<button data-t="'+(base-m*MIN)+'">'+m+' min '+(fix?'earlier':'ago')+'</button>'; }).join('');
-    Array.prototype.forEach.call($('eChips').children,function(c){ c.onclick=function(){ $('ea').value=isoOf(+c.getAttribute('data-t'));
-      Array.prototype.forEach.call($('eChips').children,function(x){x.classList.toggle('on',x===c)}); }; });
-    $('ea').value=isoOf(fix?base-10*MIN:n-15*MIN);
-    var ab=document.querySelector('#sheetBody .acts .b-pri'); if(ab) ab.textContent=fix?'Move it':'Add';
+    $('faL').textContent=v==='Woke up'?'He woke up at':(v==='Fell asleep'||v==='Whole nap')?'He fell asleep at':'Feed started at';
+    var base=EFIX?EFIX.t:n, steps=EFIX?[5,10,15,20,30,45]:[10,15,20,30,45,60,90,120];
+    $('eChips').innerHTML=steps.map(function(m){ return '<button type="button" data-t="'+(base-m*MIN)+'">'+(m<60?m+' min':m===90?'1½ h':(m/60)+' h')+(EFIX?' earlier':' ago')+'</button>'; }).join('');
+    Array.prototype.forEach.call($('eChips').children,function(c){ c.onclick=function(){ setT('ea',+c.getAttribute('data-t')); ecUpdate(); }; });
+    $('eFix').innerHTML=EFIX?'You pressed <b>'+(EFIX.side||(EFIX.type==='Asleep'?'Fell asleep':'Woke up'))+'</b> at '+hm(EFIX.t)+' – this moves that press to the right time, no extra entry.':'';
+    setT('ea',EFIX?base-10*MIN:(v==='Whole nap'?n-60*MIN:n-15*MIN)); setT('eb',n-5*MIN); ecUpdate();
+    var ab=$('saveBtn'); if(ab) ab.textContent=EFIX?'Move it':'Add';
   };
-  $('ea').oninput=function(){ Array.prototype.forEach.call($('eChips').children,function(x){x.classList.remove('on')}); };
+  ['ea','eb'].forEach(function(id){ $(id).oninput=function(){ tday(id); ecUpdate(); }; });
   $('ek').onpick(def);
 }
 function saveEarlier(){
-  var k=$('ek').getAttribute('data-v'), a=readDt('ea'), ops=[];
-  if(!a){sheetErr('Pick a time');return} if(future(a)){sheetErr('That time is in the future');return}
-  if(k==='Whole nap'){ var b=readDt('eb'); if(!b||future(b)){sheetErr('Pick a valid wake-up time');return}
-    if(parseLocal(b)<=parseLocal(a)){sheetErr('"Woke up" must be after "fell asleep"');return}
-    ops.push({op:'add',kind:'Asleep',iso:a},{op:'add',kind:'Awake',iso:b}); send(ops,'Added'); return; }
+  var v=$('ek').getAttribute('data-v'), k=EK[v]||v, a=readT('ea'), n=now();
+  if(a==null){sheetErr('Pick a time');return}
+  if(v==='Whole nap'){ var b=readT('eb'); if(b==null){sheetErr('Pick when he woke up');return}
+    if(b<=a){ if(a-b>12*HOUR) a-=DAY; else {sheetErr('"Woke up" must be after "fell asleep"');return} }
+    addLater([{kind:'Asleep',t:a},{kind:'Awake',t:b}],'Nap '+hm(a)+'–'+hm(b)+' added'); return; }
   if(EFIX&&(k===EFIX.type||k===EFIX.side)){
-    if(a.substr(0,16)===EFIX.iso.substr(0,16)){ closeSheet(); return; }
-    send([{op:'edit',row:EFIX.row,iso:EFIX.iso,newIso:a}],'Moved to '+a.substr(11,5)); return; }
-  send([{op:'add',kind:k,iso:a}],'Added');
+    if(Math.abs(a-EFIX.t)<MIN){ closeSheet(); return; }
+    send([{op:'edit',row:EFIX.row,iso:EFIX.iso,newIso:isoOf(a)+':00'}],'Moved to '+hm(a)); return; }
+  addLater([{kind:k,t:a}],(v==='Left'||v==='Right'?'Feed · '+v:v)+' '+hm(a)+' added');
+}
+// add entries for an earlier time: shown at once and saved in the background like a normal tap
+function addLater(list,msg){
+  list.forEach(function(e){ QUEUE.push([isoOf(e.t)+':00',e.kind,'e'+Date.now().toString(36)+(QN++),0,Date.now()]); });
+  saveQ(); LASTSEND=null; haptic(); closeSheet();
+  if(DATA){ M=build(withQueue(DATA)); render(); } toast(msg); syncLabel(); flushQueue();
 }
 
 /* ---------- settings ---------- */
