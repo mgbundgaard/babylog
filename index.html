@@ -682,7 +682,7 @@ function build(data){
   if(state==='Awake'&&kindNow==='Day'&&nextSleep&&bedToday){
     if(nextSleep>=bedToday-60*MIN){
       var bedWW=blend(dayWW,own('Bedtime'));
-      nextSleep=Math.min(Math.max(since+bedWW*MIN,bedToday-20*MIN),bedToday+90*MIN); isBedtime=true;
+      nextSleep=Math.min(Math.max(since+bedWW*MIN,bedToday-45*MIN),bedToday+90*MIN); isBedtime=true;
     }
   }
   var vits=valid.filter(function(e){return e.type==='Vitamin'});
@@ -1226,7 +1226,7 @@ function build(data){
   if(state==='Awake'&&kindNow==='Day'&&nextSleep&&bedToday){
     if(nextSleep>=bedToday-60*MIN){
       var bedWW=blend(dayWW,own('Bedtime'));
-      nextSleep=Math.min(Math.max(since+bedWW*MIN,bedToday-20*MIN),bedToday+90*MIN); isBedtime=true;
+      nextSleep=Math.min(Math.max(since+bedWW*MIN,bedToday-45*MIN),bedToday+90*MIN); isBedtime=true;
     }
   }
   var vits=valid.filter(function(e){return e.type==='Vitamin'});
