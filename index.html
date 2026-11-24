@@ -1584,6 +1584,9 @@ var QKEY='babylog_queue', QUEUE=[], flushing=false, QN=0, FAILS=0, LASTSEND=null
 try{ QUEUE=JSON.parse(localStorage.getItem(QKEY)||'[]')||[]; }catch(e){ QUEUE=[]; }
 QUEUE.forEach(function(q){ if(!q[2]) q[2]='o'+(QN++); if(q[4]==null) q[4]=0; });
 function saveQ(){ try{ localStorage.setItem(QKEY,JSON.stringify(QUEUE)); }catch(e){} }
+// the app can be open twice on one phone (home screen + Safari): always work from the saved list, so one copy can't bring back presses the other already sent
+function loadQ(){ try{ var q=JSON.parse(localStorage.getItem(QKEY)||'[]'); if(Array.isArray(q)) QUEUE=q; }catch(e){} }
+window.addEventListener('storage',function(e){ if(e.key===QKEY&&!flushing){ loadQ(); if(DATA){ M=build(withQueue(DATA)); render(); } syncLabel(); } });
 function withQueue(data){ if(!QUEUE.length||!data)return data; var d=JSON.parse(JSON.stringify(data));
   QUEUE.forEach(function(q){ d.rows.push([q[0],q[0].substr(11,5)+' '+q[1]]); }); return d; }
 // a tap the Sheet already has (the answer got lost on the way back) is not sent twice
@@ -1596,7 +1599,7 @@ function apply(data){
   dropSaved(data); DATA=data; skew=parseLocal(data.now)-Date.now(); M=build(withQueue(data)); render(); syncLabel();
 }
 function flushQueue(){
-  if(!QUEUE.length||flushing)return; clearTimeout(RETRY); flushing=true;
+  if(flushing)return; loadQ(); if(!QUEUE.length){ syncLabel(); return; } clearTimeout(RETRY); flushing=true;
   var sending=QUEUE.slice(), ids=sending.map(function(q){return q[2]}), ls=LASTSEND;
   // a fresh single tap is written with the Sheet's own clock, like before; anything else keeps the time it was tapped
   var live=ls&&FAILS===0&&sending.length===ls.ids.length&&ls.ids.every(function(id){return ids.indexOf(id)>=0})&&Date.now()-ls.tap<20000;
