@@ -1680,7 +1680,10 @@ function fixUndo(){
 function toggleSleep(){ log(M&&M.state==='Asleep'?'Awake':'Asleep'); }
 function undoLast(){
   if(!M||!M.lastEntry||busy)return;
-  if(undoArmed>now()){ undoArmed=0; var le=M.lastEntry;
+  if(undoArmed>now()){
+    // the other phone may have logged something since: only undo with fresh data, so we never remove the wrong entry
+    if(Date.now()-FRESH>45000&&!flushing){ toast('Checking the latest entry…'); refresh(); undoArmed=now()+8000; setTimeout(render,8100); return; }
+    undoArmed=0; var le=M.lastEntry;
     if(!le.row){ // still waiting on the phone
       if(flushing){ toast('Saving it – try undo again in a second'); return; }
       for(var i=QUEUE.length-1;i>=0;i--){ if(QUEUE[i][0]===le.iso){ QUEUE.splice(i,1); break; } }
@@ -1690,7 +1693,8 @@ function undoLast(){
       .withFailureHandler(function(e){busy=false;setSync('err','Not saved');toast((e&&e.message)||'Could not undo – try again');refresh()})
       .applyEdits([{op:'delete',row:le.row,iso:le.iso}]);
     return; }
-  undoArmed=now()+4000; render(); setTimeout(render,4100);
+  undoArmed=now()+5000; render(); setTimeout(render,5100);
+  if(Date.now()-FRESH>45000&&!flushing) refresh();   // so "Undo …?" shows what is really the last entry
 }
 /* ---------- shared rules so every number in the app agrees ---------- */
 var CATNAP=15*MIN; // naps shorter than this are shown but not counted as a nap
