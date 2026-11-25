@@ -1287,7 +1287,7 @@ function render(){
 
   // ask where the last nap was
   var ls=M.sleeps[M.sleeps.length-1], pa=$('placeAsk');
-  if(M.state==='Awake'&&ls&&ls.kind==='Nap'&&!ls.place&&n-ls.end<3*HOUR&&!PLACE_SKIP[ls.start]&&ls.a&&ls.a.row){
+  if(M.state==='Awake'&&ls&&ls.kind==='Nap'&&!ls.place&&n-ls.end<3*HOUR&&!PLACE_SKIP[ls.start]&&ls.a&&ls.a.row&&Date.now()-FRESH<3*60000){
     pa.hidden=false; $('placeQ').textContent='Where was the '+hm(ls.start)+' nap?';
     $('placeBtns').innerHTML=S.places.map(function(p){return '<button onclick="tagPlace(\''+esc(p).replace(/'/g,'')+'\')">'+esc(p)+'</button>'}).join('')+
       '<button class="skip" onclick="skipPlace()">Skip</button>';
@@ -1595,8 +1595,9 @@ function dropSaved(data){ if(!QUEUE.length||!data)return; var n0=QUEUE.length;
     return !data.rows.some(function(r){ return String(r[1]).trim().slice(6)===q[1]&&Math.abs(parseLocal(r[0])-t)<=(q[3]==='live'?120000:3000); }); });
   if(QUEUE.length!==n0) saveQ(); }
 function syncLabel(){ if(QUEUE.length) setSync('busy',flushing?'Saving…':QUEUE.length+' waiting to save'); else setSync('', /look-v3/.test(document.documentElement.className)?'Synced':'Updated '+hm(now())); }
+var FRESH=0;
 function apply(data){
-  dropSaved(data); DATA=data; skew=parseLocal(data.now)-Date.now(); M=build(withQueue(data)); render(); syncLabel();
+  dropSaved(data); DATA=data; FRESH=Date.now(); skew=parseLocal(data.now)-Date.now(); M=build(withQueue(data)); render(); syncLabel();
 }
 function flushQueue(){
   if(flushing)return; loadQ(); if(!QUEUE.length){ syncLabel(); return; } clearTimeout(RETRY); flushing=true;
@@ -2046,9 +2047,16 @@ function deleteVit(){ var v=EDIT.ref; if(!v.row){sheetErr('Still saving – try 
 var PLACE_SKIP={};
 function tagPlace(p){
   var ls=M&&M.sleeps[M.sleeps.length-1]; if(!ls||!ls.a||!ls.a.row)return;
-  PLACE_SKIP[ls.start]=1; $('placeAsk').hidden=true; toast('Nap in the '+p.toLowerCase()); setSync('busy','Saving…');
-  google.script.run.withSuccessHandler(function(d){apply(d)})
-    .withFailureHandler(function(e){delete PLACE_SKIP[ls.start];setSync('err','Not saved');toast('Could not save the place – try again');render()})
+  var st=ls.start; PLACE_SKIP[st]=1; $('placeAsk').hidden=true; toast('Nap in the '+p.toLowerCase()); setSync('busy','Saving…');
+  google.script.run.withSuccessHandler(function(d){ apply(d); })
+    .withFailureHandler(function(e){
+      // usually the other phone answered first, or the log moved: check what the Sheet says now
+      google.script.run.withSuccessHandler(function(d){ apply(d); var l2=M.sleeps.filter(function(x){return x.start===st})[0];
+          if(l2&&l2.place) toast('Already saved: '+l2.place.toLowerCase());
+          else if(l2&&l2.a&&l2.a.row) google.script.run.withSuccessHandler(function(d3){apply(d3)}).withFailureHandler(function(){ toast('Could not save the place'); syncLabel(); })
+            .applyEdits([{op:'tag',row:l2.a.row,iso:l2.a.iso,place:p}]); })
+        .withFailureHandler(function(){ delete PLACE_SKIP[st]; syncLabel(); toast('No connection – the place was not saved'); render(); }).getData();
+    })
     .applyEdits([{op:'tag',row:ls.a.row,iso:ls.a.iso,place:p}]);
 }
 function skipPlace(){ var ls=M&&M.sleeps[M.sleeps.length-1]; if(ls)PLACE_SKIP[ls.start]=1; render(); }
