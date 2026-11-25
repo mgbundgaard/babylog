@@ -446,6 +446,47 @@ html.look-v3 #undoBtn{display:none}
 button,.tap,[onclick]{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .v3-btn:active{filter:brightness(.94)}
 .v3-links button:active,.v3-h button:active{opacity:.55}
+
+/* ---------- Patterns ---------- */
+.p-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.p-h b{font-size:17px;font-weight:700}.p-h span{font-size:12.5px;color:var(--muted);font-weight:500}
+.p-tiles{display:grid;grid-template-columns:1fr 1fr;gap:16px 14px}
+.p-t{min-width:0}.p-l{font-size:12.5px;font-weight:600;color:var(--muted)}
+.p-v{font-size:26px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin-top:2px;white-space:nowrap}
+.p-v small{font-size:13px;font-weight:600;color:var(--muted);margin:0 1px}
+.p-s{font-size:12.5px;color:var(--muted);margin-top:1px}
+.p-d{display:block;font-size:12px;color:var(--ink);opacity:.75;margin-top:4px;font-weight:600}
+.p-list{display:flex;flex-direction:column}
+.p-r{display:flex;align-items:baseline;gap:14px;padding:8px 0 8px 14px;border-left:2px solid var(--line);position:relative}
+.p-r:before{content:"";position:absolute;left:-5px;top:14px;width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.p-r.nap:before{background:var(--sleep)}.p-r.bed:before{background:var(--sleep);box-shadow:0 0 0 3px color-mix(in srgb,var(--sleep) 25%,transparent)}
+.p-r b{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;width:46px;flex:none}
+.p-r span{display:block;font-size:14.5px;font-weight:600}.p-r small{display:block;font-size:12.5px;color:var(--muted);margin-top:1px}
+.p-foot{font-size:12.5px;color:var(--muted);margin-top:12px;line-height:1.4}.p-foot b{color:var(--ink)}
+.p-chart{position:relative;display:flex;align-items:flex-end;gap:3px;height:122px;padding-top:4px}
+.p-b{flex:1;min-width:0;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-end;height:100%;border:0;background:none;padding:0;font:inherit;color:var(--muted)}
+.p-b i{display:block;border-radius:4px 4px 1px 1px;opacity:.38}
+.p-b.cur i{opacity:1}
+.p-b span{font-size:10.5px;text-align:center;height:18px;line-height:18px;margin-top:4px;font-weight:600}
+.p-avg{position:absolute;left:0;right:0;height:0;border-top:1px solid var(--ink);opacity:.45;pointer-events:none}
+.p-key{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--muted);margin-top:8px}
+.p-key span{display:inline-flex;align-items:center;gap:5px}.p-key i{display:inline-block;width:10px;height:10px;border-radius:3px}
+.p-key i.ln{height:0;width:14px;border-top:1px solid var(--ink);opacity:.55;border-radius:0}
+.p-mini{display:grid;grid-template-columns:repeat(4,1fr);margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.p-mini div{min-width:0;padding:0 8px;border-left:1px solid var(--line)}.p-mini div:first-child{border-left:0;padding-left:0}
+.p-mini span{display:block;font-size:11.5px;color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.p-mini b{display:block;font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px;white-space:nowrap}
+.p-wkwrap{overflow-x:auto;margin:0 -4px;padding:0 4px}
+.p-wk{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}
+.p-wk th{font-size:12px;color:var(--ink);font-weight:700;text-align:right;padding:0 0 6px 6px;white-space:nowrap;line-height:1.15;vertical-align:bottom}
+.p-wk th small{font-size:11px;color:var(--muted);font-weight:600}
+.p-wk td{text-align:right;padding:7px 0 7px 6px;border-top:1px solid var(--line);white-space:nowrap;font-weight:600}
+.p-wk td:first-child{text-align:left;color:var(--muted);font-weight:600;padding-left:0}
+.p-wk td.cur{color:var(--ink);font-weight:750}
+.p-wk td:not(.cur):not(:first-child){color:color-mix(in srgb,var(--ink) 70%,transparent)}
+.p-help{padding:12px 0;border-top:1px solid var(--line)}.p-help:first-of-type{border-top:0;padding-top:0}
+.p-help b{font-size:14.5px}.p-help p{margin:4px 0 3px;font-size:14px;line-height:1.45}.p-help p b{font-size:inherit}.p-help small{font-size:12px;color:var(--muted)}
+html.night section[data-tab="trends"] .p-b i{opacity:.5}html.night section[data-tab="trends"] .p-b.cur i{opacity:1}
 </style>
 </head>
 <body>
@@ -515,8 +556,9 @@ button,.tap,[onclick]{touch-action:manipulation;-webkit-tap-highlight-color:tran
   </section>
 
   <section data-tab="trends" hidden>
+  <div class="card" id="pSum"></div>
   <div class="card">
-    <div class="label" style="margin-bottom:10px"><i style="background:var(--sleep)"></i>Sleep and feeds</div>
+    <div class="p-h"><b>Every day, side by side</b></div>
     <div class="wkctl">
       <div class="seg sm" id="wkDays"><button onclick="setWk('days',7)">7 days</button><button onclick="setWk('days',14)">14 days</button></div>
       <div class="seg sm" id="wkStart"><button onclick="setWk('start',6)">06–06</button><button onclick="setWk('start',0)">00–24</button></div>
@@ -525,17 +567,11 @@ button,.tap,[onclick]{touch-action:manipulation;-webkit-tap-highlight-color:tran
     <div class="wkdet" id="wkDet">Tap a sleep to see the times · tap a day to open it</div>
     <div class="legend"><span style="--c:var(--sleep)">Night</span><span style="--c:color-mix(in srgb,var(--sleep) 50%,transparent)">Nap</span><span style="--c:var(--feed)">Feed</span></div>
   </div>
-  <div class="card ins"><div id="ins"></div></div>
-
-  <div class="card">
-    <div class="label" style="margin-bottom:6px"><i style="background:var(--sleep)"></i>Totals per day</div>
-    <div class="label" style="font-size:12px">Sleep (hours)</div>
-    <div class="days" id="sleepDays"></div>
-    <div class="legend"><span style="--c:var(--sleep)">Night</span><span style="--c:color-mix(in srgb,var(--sleep) 45%,transparent)">Naps</span></div>
-    <div class="label" style="font-size:12px;margin-top:18px">Feeds</div>
-    <div class="days" id="feedDays" style="height:90px"></div>
-  </div>
-
+  <div class="card" id="pDay"></div>
+  <div class="card" id="pNight"></div>
+  <div class="card" id="pFeed"></div>
+  <div class="card" id="pWeeks"></div>
+  <div class="card" id="pHelp"></div>
   </section>
 
   <div class="foot">Saved in your Google Sheet · updates every minute · works offline</div>
@@ -1328,6 +1364,7 @@ function renderTimeline(n){
   var x=''; for(var i=0;i<=4;i++) x+='<span>'+(i===4?'now':hm(a+i*DAY/4))+'</span>'; $('tlx').innerHTML=x;
 }
 function renderWeek(n){
+  if(!$('sleepDays')) return;
   var d0=startOfDay(n), days=[], maxS=1, maxF=1;
   for(var i=6;i>=0;i--){ var s=d0-i*DAY, e=s+DAY;
     e=dayEnd(s); var ni=sleepIn(s,e,'Night'), na=sleepIn(s,e,'Nap');
@@ -1490,90 +1527,138 @@ function renderPatterns(n){
   $('wk').innerHTML=h;
   if(!WKSEL) $('wkDet').innerHTML='Tap a sleep to see the times · tap a day to open it';
 
-  // ---- insights (last 7 days)
-  var from=d0-7*DAY, prevFrom=d0-14*DAY, out='';
-  out+=changesLately(d0);
-  var nights=M.sleeps.filter(function(s){return s.kind==='Night'&&s.start>=from});
-  var bed={}, wake={};
-  nights.forEach(function(s){ var m=minsOfDay(s.start); if(m>=12*60&&s.dur>=4*HOUR){ var b0=s.bedStart||s.start, k=startOfDay(b0); if(!bed[k]||b0<bed[k])bed[k]=b0; } });
-  nights.forEach(function(s){ var m=minsOfDay(s.end); if(m>=3*60&&m<11*60){ var k=startOfDay(s.end); if(!wake[k]||s.end>wake[k])wake[k]=s.end; } });
-  var bedT=Object.keys(bed).map(function(k){return todMin(bed[k],true)}), wakeT=Object.keys(wake).map(function(k){return todMin(wake[k])});
-  if(bedT.length) out+=insRow('🌙','Bedtime usually ~'+fmtTod(avg(bedT)),(bedT.length>1?'between '+fmtTod(Math.min.apply(0,bedT))+' and '+fmtTod(Math.max.apply(0,bedT))+' · ':'')+bedT.length+' night'+(bedT.length>1?'s':''));
-  if(wakeT.length) out+=insRow('☀️','Wakes up for the day ~'+fmtTod(avg(wakeT)),(wakeT.length>1?'between '+fmtTod(Math.min.apply(0,wakeT))+' and '+fmtTod(Math.max.apply(0,wakeT))+' · ':'')+wakeT.length+' morning'+(wakeT.length>1?'s':''));
-  // longest night stretch between feeds
-  var stretches=nightsList().filter(function(x){return x.start>=from}).map(function(x){return {mx:x.stretch,t:x.bed}});
-  if(stretches.length){ var best=stretches.reduce(function(a,b){return b.mx>a.mx?b:a});
-    out+=insRow('⏳','Longest night stretch ~'+dur(avg(stretches.map(function(x){return x.mx})),true),'without a feed, on average · best '+dur(best.mx,true)+' ('+wd[new Date(best.t).getDay()]+')'); }
-  // naps: compare only days with the same number of naps (catnaps under 15 min don't count)
-  var napDays={};
-  M.sleeps.filter(function(s){return s.kind==='Nap'&&s.dur>=15*MIN&&s.start>=from&&s.start<d0}).forEach(function(s){ var k=startOfDay(s.start); (napDays[k]=napDays[k]||[]).push(s); });
-  var dk=Object.keys(napDays);
+  renderPatterns2(n);
+}
+/* ---------- Patterns: what the last weeks say ---------- */
+var PSEL={};
+function pFullDays(n,k,skip){ var d0=startOfDay(n), out=[]; for(var i=k+(skip||0);i>(skip||0);i--){ var a=new Date(d0); a.setDate(a.getDate()-i); out.push(a.getTime()); } return out; }
+function pRange(days,n){ // summary of a set of full days (each day = 00–24) and the nights that start on those evenings
+  var ds=[]; days.forEach(function(t){ var st=dayStats(t); if(!st)return; var e=dayEnd(t);
+    ds.push({t:t,st:st,feeds:M.feeds.filter(function(f){return f.start>=t&&f.start<e}).length}); });
+  if(!ds.length) return null;
+  var a=days[0], b=dayEnd(days[days.length-1]);
+  var ng=nightsList().filter(function(x){ return x.bed>=a+12*HOUR&&x.bed<b+12*HOUR&&x.end<=n; });
+  var naps=[].concat.apply([],ds.map(function(d){return d.st.napLen})), aw=[].concat.apply([],ds.map(function(d){return d.st.aw}));
+  return { days:ds.length, sleep:avg(ds.map(function(d){return d.st.total})), naps:avg(ds.map(function(d){return d.st.naps})),
+    napLen:naps.length?median(naps):null, aw:aw.length?median(aw):null, feeds:avg(ds.map(function(d){return d.feeds})),
+    nights:ng.length, stretch:ng.length?avg(ng.map(function(x){return x.stretch})):null, best:ng.length?Math.max.apply(0,ng.map(function(x){return x.stretch})):null,
+    nightSlept:ng.length?avg(ng.map(function(x){return x.slept})):null, nightFeeds:ng.length?avg(ng.map(function(x){return x.feeds})):null,
+    bed:ng.length?median(ng.map(function(x){return todMin(x.bed,true)})):null, up:ng.length?median(ng.map(function(x){return minsOfDay(x.end)})):null };
+}
+function pNum(x,d){ return (Math.round(x*Math.pow(10,d||1))/Math.pow(10,d||1)).toString().replace(/\.0$/,''); }
+function pDelta(cur,prev,kind){ // kind: 'dur' (ms), 'n' (count), 'tod' (minutes of day)
+  if(cur==null||prev==null) return '<span class="p-d">no week before to compare</span>';
+  var d=cur-prev, small=kind==='dur'?Math.abs(d)<10*MIN:kind==='tod'?Math.abs(d)<10:Math.abs(d)<0.35;
+  if(small) return '<span class="p-d">same as the week before</span>';
+  var v=kind==='dur'?dur(Math.abs(d),true):kind==='tod'?Math.round(Math.abs(d))+' min '+(d>0?'later':'earlier'):pNum(Math.abs(d));
+  return '<span class="p-d">'+(kind==='tod'?v:(d>0?'↑ ':'↓ ')+v)+' vs the week before</span>';
+}
+// a small column chart: one bar per day/night, the average as a thin line, values on tap
+function pBars(id,items,fmt,color,unit){
+  var vals=items.map(function(x){return x.v}).filter(function(v){return v!=null});
+  if(vals.length<2) return '<div class="empty">Needs a few more days of logging.</div>';
+  var mx=Math.max.apply(0,vals)*1.12, mean=avg(vals), H=96;
+  var bars=items.map(function(x,i){ var h=x.v==null?0:Math.max(3,x.v/mx*H);
+    return '<button class="p-b'+(x.cur?' cur':'')+'" onclick="toast(\''+x.lab.replace(/'/g,'')+': '+(x.v==null?'not logged':fmt(x.v))+'\',2200)" aria-label="'+x.lab+'">'+
+      '<i style="height:'+h+'px;background:'+color+'"></i><span>'+x.short+'</span></button>'; }).join('');
+  return '<div class="p-chart" id="'+id+'"><div class="p-avg" style="bottom:'+(22+mean/mx*H)+'px"></div>'+bars+'</div>'+
+    '<div class="p-key"><span><i style="background:'+color+'"></i>Last 7</span><span><i style="background:'+color+';opacity:.38"></i>Week before</span><span><i class="ln"></i>Average '+fmt(mean)+'</span></div>';
+}
+function renderPatterns2(n){
+  var d0=startOfDay(n), wd=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var cur=pRange(pFullDays(n,7),n), prev=pRange(pFullDays(n,7,7),n);
+  if(!cur){ $('pSum').innerHTML='<div class="empty">Patterns appear here after a couple of full days of logging.</div>'; ['pDay','pNight','pFeed','pWeeks','pHelp'].forEach(function(id){$(id).hidden=true}); return; }
+  ['pDay','pNight','pFeed','pWeeks','pHelp'].forEach(function(id){$(id).hidden=false});
+  var P=prev||{};
+  // ---- 1. the last 7 days in four numbers
+  function tile(lab,big,sub,delta){ return '<div class="p-t"><div class="p-l">'+lab+'</div><div class="p-v">'+big+'</div><div class="p-s">'+sub+'</div>'+delta+'</div>'; }
+  $('pSum').innerHTML='<div class="p-h"><b>Last 7 days</b><span>'+cur.days+' full days · compared with the 7 before</span></div><div class="p-tiles">'+
+    tile('Sleep',bigDur(cur.sleep),'a day, naps and night',pDelta(cur.sleep,P.sleep,'dur'))+
+    tile('Longest stretch',cur.stretch!=null?bigDur(cur.stretch):'–','at night without a feed'+(cur.best?' · best '+dur(cur.best,true):''),pDelta(cur.stretch,P.stretch,'dur'))+
+    tile('Naps',pNum(cur.naps)+'<small> a day</small>',(cur.napLen?dur(cur.napLen,true)+' typical length':''),pDelta(cur.napLen,P.napLen,'dur'))+
+    tile('Feeds',pNum(cur.feeds)+'<small> a day</small>',(cur.nightFeeds!=null?pNum(cur.nightFeeds)+' during the night':''),pDelta(cur.feeds,P.feeds,'n'))+'</div>';
+
+  // ---- 2. his day right now: a typical day with the most common number of naps
+  var napDays={}; pFullDays(n,7).forEach(function(t){ var e=dayEnd(t), ns=M.sleeps.filter(function(s){return isNap(s)&&s.start>=t&&s.start<e}); if(ns.length) napDays[t]=ns; });
+  var dk=Object.keys(napDays), hd='<div class="p-h"><b>His day right now</b><span>a typical day, last 7 days</span></div>';
   if(dk.length){
-    var all=[].concat.apply([],dk.map(function(k){return napDays[k]})), perDay=all.length/dk.length;
-    var byCount={}; dk.forEach(function(k){ var c=napDays[k].length; (byCount[c]=byCount[c]||[]).push(k); });
-    var counts=Object.keys(byCount).map(Number).sort(function(a,b){ return byCount[b].length-byCount[a].length || Math.max.apply(0,byCount[b])-Math.max.apply(0,byCount[a]); });
-    var pick=(NAPN&&byCount[NAPN])?NAPN:counts[0], days=byCount[pick];
-    var rowsN=[];
-    days.forEach(function(k){ napDays[k].sort(function(a,b){return a.start-b.start}).forEach(function(s,i){
+    var byC={}; dk.forEach(function(k){ (byC[napDays[k].length]=byC[napDays[k].length]||[]).push(k); });
+    var counts=Object.keys(byC).map(Number).sort(function(a,b){return byC[b].length-byC[a].length||b-a});
+    var pick=(PSEL.naps&&byC[PSEL.naps])?PSEL.naps:counts[0], rowsN=[];
+    byC[pick].forEach(function(k){ napDays[k].sort(function(a,b){return a.start-b.start}).forEach(function(s,i){
       var w=M.wakes.filter(function(x){return x.end===s.start})[0]; (rowsN[i]=rowsN[i]||[]).push({st:minsOfDay(s.start),d:s.dur,aw:w?w.dur:null}); }); });
-    var segN=counts.length>1?'<div class="seg sm segn" style="margin:10px 0 2px">'+counts.slice().sort(function(a,b){return a-b}).map(function(c){
-        return '<button class="'+(c===pick?'on':'')+'" onclick="NAPN='+c+';render()">'+c+' naps<span style="display:block;font-size:11.5px;font-weight:500;color:var(--muted)">'+byCount[c].length+' day'+(byCount[c].length>1?'s':'')+'</span></button>'; }).join('')+'</div>':'';
-    var tab='<table class="naptab"><tr><th>Nap</th><th>Usually at</th><th>Lasts</th><th>Awake before</th></tr>'+
-      rowsN.map(function(r,i){ var aws=r.filter(function(x){return x.aw}).map(function(x){return x.aw});
-        return '<tr><td>'+(i+1)+'</td><td>'+fmtTod(median(r.map(function(x){return x.st})))+'</td><td>'+dur(median(r.map(function(x){return x.d})),true)+'</td><td>'+(aws.length?dur(median(aws),true):'–')+'</td></tr>'; }).join('')+'</table>';
-    out+='<div class="insrow"><div class="ii">😴</div><div style="flex:1;min-width:0"><b>'+perDay.toFixed(1).replace('.0','')+' naps a day · '+dur(median(all.map(function(s){return s.dur})),true)+' typical length</b>'+
-      '<span>Last '+dk.length+' full day'+(dk.length>1?'s':'')+(counts.length>1?' · a typical day with '+pick+' naps':'')+' · catnaps under 15 min not counted</span>'+segN+tab+'</div></div>';
-  }
-  // what makes a long nap?
+    var bedAw=M.wakes.filter(function(w){return w.kind==='Bedtime'&&w.end>=d0-7*DAY&&w.dur>=30*MIN}).map(function(w){return w.dur});
+    var li='';
+    if(cur.up!=null) li+='<div class="p-r"><b>'+fmtTod(cur.up)+'</b><div><span>Up for the day</span><small>usual time, last '+cur.nights+' mornings</small></div></div>';
+    rowsN.forEach(function(r,i){ var aws=r.filter(function(x){return x.aw}).map(function(x){return x.aw});
+      li+='<div class="p-r nap"><b>'+fmtTod(median(r.map(function(x){return x.st})))+'</b><div><span>Nap '+(i+1)+' · '+dur(median(r.map(function(x){return x.d})),true)+'</span><small>'+(aws.length?'after '+dur(median(aws),true)+' awake':'')+'</small></div></div>'; });
+    if(cur.bed!=null) li+='<div class="p-r bed"><b>'+fmtTod(cur.bed)+'</b><div><span>Bedtime</span><small>'+(bedAw.length?'after '+dur(median(bedAw),true)+' awake':'')+'</small></div></div>';
+    var segN=counts.length>1?'<div class="seg sm segn" style="margin:2px 0 10px">'+counts.slice().sort(function(a,b){return a-b}).map(function(c){
+      return '<button class="'+(c===pick?'on':'')+'" onclick="PSEL.naps='+c+';render()">'+c+' naps<span style="display:block;font-size:11.5px;font-weight:500;color:var(--muted)">'+byC[c].length+' day'+(byC[c].length>1?'s':'')+'</span></button>'; }).join('')+'</div>':'';
+    hd+=segN+'<div class="p-list">'+li+'</div>'+(cur.aw?'<div class="p-foot">Awake time between sleeps: usually <b>'+dur(cur.aw,true)+'</b>'+(P.aw?' (week before '+dur(P.aw,true)+')':'')+'.</div>':'');
+  } else hd+='<div class="empty">No naps logged in the last 7 days.</div>';
+  $('pDay').innerHTML=hd;
+
+  // ---- 3. nights: longest stretch per night, 14 nights
+  var nl=nightsList().filter(function(x){return x.end<=n}), items=[];
+  pFullDays(n,14).forEach(function(t){ var x=nl.filter(function(y){return y.bed>=t+12*HOUR&&y.bed<dayEnd(t)+12*HOUR})[0], dd=new Date(t);
+    items.push({v:x?x.stretch/HOUR:null,lab:'Night to '+wd[(dd.getDay()+1)%7]+' '+new Date(dayEnd(t)).getDate()+'/'+(new Date(dayEnd(t)).getMonth()+1),short:wd[(dd.getDay()+1)%7].charAt(0),cur:t>=d0-7*DAY}); });
+  $('pNight').innerHTML='<div class="p-h"><b>Nights</b><span>longest stretch without a feed</span></div>'+
+    pBars('pnb',items,function(v){return dur(v*HOUR,true)},'var(--sleep)')+
+    '<div class="p-mini">'+
+      '<div><span>Bedtime</span><b>'+(cur.bed!=null?'~'+fmtTod(cur.bed):'–')+'</b></div>'+
+      '<div><span>Up</span><b>'+(cur.up!=null?'~'+fmtTod(cur.up):'–')+'</b></div>'+
+      '<div><span>Asleep</span><b>'+(cur.nightSlept!=null?dur(cur.nightSlept,true):'–')+'</b></div>'+
+      '<div><span>Night feeds</span><b>'+(cur.nightFeeds!=null?pNum(cur.nightFeeds):'–')+'</b></div></div>'+
+    '<div class="p-foot">Bedtime to morning, averages of the last '+cur.nights+' nights. Tap a bar for that night.</div>';
+
+  // ---- 4. feeding: feeds per day, gaps, sides
+  var fi=[]; pFullDays(n,14).forEach(function(t){ var dd=new Date(t); fi.push({v:M.feeds.filter(function(f){return f.start>=t&&f.start<dayEnd(t)}).length,lab:wd[dd.getDay()]+' '+dd.getDate()+'/'+(dd.getMonth()+1),short:wd[dd.getDay()].charAt(0),cur:t>=d0-7*DAY}); });
+  var f7=M.feeds.filter(function(f){return f.start>=d0-7*DAY&&f.start<d0}), gapD=[], gapN=[], sides={Left:0,Right:0};
+  f7.forEach(function(f){ if(f.side==='Left'||f.side==='Right') sides[f.first||f.side]=(sides[f.first||f.side]||0)+1; if(f.interval){ var m=minsOfDay(f.start), ns=M.effNs, ne=toMin(M.S.nightEnd), atNight=ns>ne?(m>=ns||m<ne):(m>=ns&&m<ne); (atNight?gapN:gapD).push(f.interval); } });
+  var sl=sides.Left+sides.Right;
+  $('pFeed').innerHTML='<div class="p-h"><b>Feeding</b><span>feeds per day</span></div>'+pBars('pfb',fi,function(v){return pNum(v)+' feeds'},'var(--feed)')+
+    '<div class="p-mini">'+
+      '<div><span>Day gap</span><b>'+(gapD.length?dur(median(gapD),true):'–')+'</b></div>'+
+      '<div><span>Night gap</span><b>'+(gapN.length?dur(median(gapN),true):'–')+'</b></div>'+
+      '<div><span>Left first</span><b>'+(sl?Math.round(sides.Left/sl*100)+'%':'–')+'</b></div>'+
+      '<div><span>Right first</span><b>'+(sl?Math.round(sides.Right/sl*100)+'%':'–')+'</b></div></div>'+
+    '<div class="p-foot">Gap = from the start of one feed to the start of the next (typical), last 7 days. Tap a bar for that day.</div>';
+
+  // ---- 5. week by week (good for the health nurse)
+  var W=[]; for(var w=0;w<3;w++){ var r=pRange(pFullDays(n,7,w*7),n); if(r&&r.days>=3){ var ds=pFullDays(n,7,w*7), a1=new Date(ds[0]), b1=new Date(ds[6]);
+    var mo=function(d){return d.toLocaleDateString('en-GB',{month:'short'})};
+    r.lab=a1.getDate()+'–'+b1.getDate()+'<br><small>'+(a1.getMonth()===b1.getMonth()?mo(b1):mo(a1)+'–'+mo(b1))+'</small>'; W.push(r);} }
+  W.reverse();
+  if(W.length>=2){
+    var rowsW=[['Sleep a day',function(r){return dur(r.sleep,true)}],['Naps a day',function(r){return pNum(r.naps)}],['Nap length',function(r){return r.napLen?dur(r.napLen,true):'–'}],
+      ['Awake between',function(r){return r.aw?dur(r.aw,true):'–'}],['Night asleep',function(r){return r.nightSlept!=null?dur(r.nightSlept,true):'–'}],
+      ['Longest stretch',function(r){return r.stretch!=null?dur(r.stretch,true):'–'}],['Feeds a day',function(r){return pNum(r.feeds)}],
+      ['Night feeds',function(r){return r.nightFeeds!=null?pNum(r.nightFeeds):'–'}],['Bedtime',function(r){return r.bed!=null?fmtTod(r.bed):'–'}],['Up',function(r){return r.up!=null?fmtTod(r.up):'–'}]];
+    $('pWeeks').innerHTML='<div class="p-h"><b>Week by week</b><span>averages per day, newest on the right</span></div><div class="p-wkwrap"><table class="p-wk"><tr><th></th>'+W.map(function(r){return '<th>'+r.lab+'</th>'}).join('')+'</tr>'+
+      rowsW.map(function(rw){ return '<tr><td>'+rw[0]+'</td>'+W.map(function(r,i){return '<td'+(i===W.length-1?' class="cur"':'')+'>'+rw[1](r)+'</td>'}).join('')+'</tr>'; }).join('')+'</table></div>'+
+      '<div class="p-foot">Each column is 7 full days, the last three weeks. Handy to show at the health nurse.</div>';
+  } else $('pWeeks').hidden=true;
+
+  // ---- 6. what seems to help (only when the difference is clear, always with how many it is based on)
+  var help=[];
   var pairs=M.wakes.filter(function(w){return (w.kind==='Day'||w.kind==='Morning')&&w.end>=d0-14*DAY}).map(function(w){
     var s=M.sleeps.filter(function(x){return x.start===w.end&&isNap(x)})[0]; return s?{aw:w.dur,nap:s.dur}:null; }).filter(Boolean);
-  if(pairs.length>=6){
-    var sorted=pairs.map(function(p){return p.aw}).sort(function(a,b){return a-b}), med=sorted[Math.floor(sorted.length/2)];
-    var lo=pairs.filter(function(p){return p.aw<med}), hi=pairs.filter(function(p){return p.aw>=med});
-    var nl=avg(lo.map(function(p){return p.nap})), nh=avg(hi.map(function(p){return p.nap}));
-    if(lo.length&&hi.length&&Math.abs(nl-nh)>=10*MIN)
-      out+=insRow('💡','Naps are longer when awake '+(nl>nh?'under':'over')+' '+dur(med,true),'about '+dur(Math.max(nl,nh),true)+' vs '+dur(Math.min(nl,nh),true)+' · last 2 weeks, '+pairs.length+' naps');
-  }
-  // feed before sleep
-  var starts=M.sleeps.filter(function(s){return s.start>=from&&(isNap(s)||s.long||s.bed)}).map(function(s){return s.kind==='Night'&&s.long&&s.bedStart?s.bedStart:s.start}).filter(function(t,i,a){return a.indexOf(t)===i});
-  if(starts.length>=4){
-    var fed=starts.filter(function(t){return M.feeds.some(function(f){return f.start<=t&&t-f.start<=30*MIN})}).length;
-    out+=insRow('🍼',Math.round(fed/starts.length*100)+'% of sleeps start within 30 min of a feed',fed+' of '+starts.length+' sleeps, last 7 days');
-  }
-  // where he naps best, and when
-  var tagged=M.sleeps.filter(function(s){return isNap(s)&&s.place&&s.start>=d0-14*DAY});
-  if(tagged.length>=3){
-    var places={}, buckets=[['Morning',0,11*60],['Midday',11*60,14*60],['Afternoon',14*60,24*60]];
-    tagged.forEach(function(s){ var p=places[s.place]=places[s.place]||{all:[],b:[[],[],[]]}; p.all.push(s.dur);
-      var m=minsOfDay(s.start); buckets.forEach(function(b,i){ if(m>=b[1]&&m<b[2]) p.b[i].push(s.dur); }); });
-    var best=null;
-    Object.keys(places).forEach(function(k){ places[k].b.forEach(function(arr,i){ if(arr.length>=2){ var a2=avg(arr); if(!best||a2>best.a)best={p:k,i:i,a:a2,n:arr.length}; } }); });
-    var rowsP=Object.keys(places).sort(function(a,b){return avg(places[b].all)-avg(places[a].all)});
-    var tabP='<table class="ptab"><tr><th>Place</th><th>Naps</th><th>Avg length</th><th>Short</th></tr>'+
-      rowsP.map(function(k){ var p=places[k], short=p.all.filter(function(d){return d<M.S.shortNap*MIN}).length;
-        return '<tr><td>'+esc(k)+'</td><td>'+p.all.length+'</td><td>'+dur(avg(p.all),true)+'</td><td>'+Math.round(short/p.all.length*100)+'%</td></tr>'; }).join('')+'</table>'+
-      '<table class="ptab" style="margin-top:14px"><tr><th></th>'+buckets.map(function(b){return '<th>'+b[0]+'</th>'}).join('')+'</tr>'+
-      rowsP.map(function(k){ var p=places[k];
-        return '<tr><td>'+esc(k)+'</td>'+p.b.map(function(arr,i){ return '<td class="'+(best&&best.p===k&&best.i===i?'best':'')+'">'+(arr.length?dur(avg(arr),true):'–')+'</td>'; }).join('')+'</tr>'; }).join('')+'</table>';
-    out+='<div class="insrow"><div class="ii">📍</div><div style="flex:1;min-width:0"><b>'+(best?'Longest naps: '+esc(best.p).toLowerCase()+' '+['in the morning','around midday','in the afternoon'][best.i]+' ('+dur(best.a,true)+')':'Where he naps')+'</b>'+
-      '<span>'+tagged.length+' naps with a place, last 2 weeks · short = under '+M.S.shortNap+' min</span>'+tabP+
-      '<span style="display:block;margin-top:6px">Average nap length by time of day · morning = before 11, midday = 11–14</span></div></div>';
-  } else if(tagged.length) out+=insRow('📍','Where he naps','Tag a few more naps with a place to compare ('+tagged.length+' so far)');
-
-  // feed after waking (eat – play – sleep)
-  var wakeUps=M.sleeps.filter(function(s){return s.end>=from&&s.kind==='Nap'||(s.end>=from&&s.kind==='Night'&&minsOfDay(s.end)>=4*60&&minsOfDay(s.end)<11*60)}).map(function(s){return s.end});
-  if(wakeUps.length>=4){
-    var fedAfter=wakeUps.filter(function(t){return M.feeds.some(function(f){return f.start>=t-2*MIN&&f.start-t<=20*MIN})}).length;
-    if(fedAfter/wakeUps.length>=0.4)
-      out+=insRow('🔁','Usually fed right after waking up',fedAfter+' of '+wakeUps.length+' wake-ups had a feed within 20 min – an "eat, play, sleep" rhythm');
-  }
-  // total sleep trend
-  function dailySleep(a,b){ var days=0,tot=0; for(var t=a;t<b;t=dayEnd(t)){ var v=sleepIn(t,dayEnd(t)); if(v>0&&M.sleeps.some(function(s){return s.start<t+DAY&&s.end>t})){days++;tot+=v} } return days?{avg:tot/days,days:days}:null; }
-  var cur=dailySleep(from,d0), prev=dailySleep(prevFrom,from);
-  if(cur){ var sub='average over '+cur.days+' full day'+(cur.days>1?'s':'');
-    if(prev&&prev.days>=3){ var diff=cur.avg-prev.avg; sub=(Math.abs(diff)<10*MIN?'about the same as':(diff>0?'↑ '+dur(diff,true)+' more than':'↓ '+dur(-diff,true)+' less than'))+' the week before'; }
-    out+=insRow('📈','Last 7 days: sleeps '+dur(cur.avg,true)+' a day',sub.replace('the week before','the 7 days before')); }
-  $('ins').innerHTML=out||'<div class="empty">Patterns appear here after a couple of full days of logging.</div>';
+  if(pairs.length>=8){ var srt=pairs.map(function(p){return p.aw}).sort(function(a,b){return a-b}), md=srt[Math.floor(srt.length/2)];
+    var lo=pairs.filter(function(p){return p.aw<md}), hi=pairs.filter(function(p){return p.aw>=md}), a1=avg(lo.map(function(p){return p.nap})), a2=avg(hi.map(function(p){return p.nap}));
+    if(lo.length>=4&&hi.length>=4&&Math.abs(a1-a2)>=8*MIN) help.push(['Awake time and nap length','Naps last about <b>'+dur(Math.max(a1,a2),true)+'</b> when he has been awake '+(a1>a2?'less':'more')+' than '+dur(md,true)+', and '+dur(Math.min(a1,a2),true)+' otherwise.',pairs.length+' naps, last 2 weeks']); }
+  var tagged=M.sleeps.filter(function(s){return isNap(s)&&s.place&&s.start>=d0-14*DAY}), pl={};
+  tagged.forEach(function(s){ (pl[s.place]=pl[s.place]||[]).push(s.dur); });
+  var plk=Object.keys(pl).filter(function(k){return pl[k].length>=4}).sort(function(a,b){return avg(pl[b])-avg(pl[a])});
+  if(plk.length>=2) help.push(['Where he naps', plk.map(function(k){return '<b>'+esc(k)+'</b> '+dur(avg(pl[k]),true)}).join(' · ')+'.', plk.map(function(k){return esc(k)+' '+pl[k].length}).join(', ')+' naps, last 2 weeks'+(Object.keys(pl).length>plk.length?' · places with fewer than 4 naps left out':'')]);
+  else if(tagged.length) help.push(['Where he naps','Tag a few more naps with a place to compare places.',tagged.length+' naps tagged so far']);
+  var ngs=nl.filter(function(x){return x.bed>=d0-21*DAY}).map(function(x){return {b:todMin(x.bed,true),s:x.stretch}});
+  if(ngs.length>=8){ var bm=median(ngs.map(function(x){return x.b})), e1=ngs.filter(function(x){return x.b<bm}), l1=ngs.filter(function(x){return x.b>=bm});
+    var se=avg(e1.map(function(x){return x.s})), slt=avg(l1.map(function(x){return x.s}));
+    if(e1.length>=3&&l1.length>=3&&Math.abs(se-slt)>=20*MIN) help.push(['Bedtime and the night','The longest stretch is about <b>'+dur(Math.max(se,slt),true)+'</b> on nights he goes down '+(se>slt?'before':'at or after')+' '+fmtTod(bm)+', against '+dur(Math.min(se,slt),true)+' otherwise.',ngs.length+' nights, last 3 weeks']); }
+  $('pHelp').innerHTML='<div class="p-h"><b>What seems to help</b><span>patterns in his own data</span></div>'+
+    (help.length?help.map(function(h){return '<div class="p-help"><b>'+h[0]+'</b><p>'+h[1]+'</p><small>'+h[2]+'</small></div>'}).join(''):'<div class="empty">No clear patterns yet – this fills in as more days are logged.</div>')+
+    '<div class="p-foot">These are tendencies, not rules – a handful of days can tip them.</div>';
 }
 
 /* ---------- server ---------- */
