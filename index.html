@@ -1400,7 +1400,8 @@ function renderList(n){
 }
 
 /* ---------- day by day ---------- */
-var DAYOFF=0;
+var DAYOFF=0, DAYITEMS=[];
+function openDayItem(i){ ITEMS=DAYITEMS; openItem(i); }
 function dayStep(d){ DAYOFF=Math.max(0,DAYOFF+d); render(); }
 function sleepItem(s,n){
   var end=s.b?s.b.t:n, k=s.kind||(M.isNight(s.start)?'Night':'Nap');
@@ -1416,7 +1417,7 @@ function allSleeps(n){ var a=M.sleeps.slice(); if(M.state==='Asleep') a.push({a:
 function renderDay(n){
   var first=M.feeds.length?M.feeds[0].start:n; M.sleeps.forEach(function(s){first=Math.min(first,s.start)});
   var maxOff=Math.max(0,Math.round((startOfDay(n)-startOfDay(first))/DAY)); if(DAYOFF>maxOff)DAYOFF=maxOff;
-  var d0=startOfDay(n-DAYOFF*DAY), d1=d0+DAY;
+  var d0D=new Date(startOfDay(n)); d0D.setDate(d0D.getDate()-DAYOFF); var d0=d0D.getTime(), d1=d0+DAY;
   // DST-safe end of day
   var e=new Date(d0); e.setDate(e.getDate()+1); d1=e.getTime();
   $('dTitle').textContent=dayName(d0); $('dDate').textContent=DAYOFF>1?'':new Date(d0).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
@@ -1441,9 +1442,9 @@ function renderDay(n){
   M.vits.filter(function(v){return v.t>=d0&&v.t<d1}).forEach(function(v){items.push({t:v.t,kind:'vit',ref:v,
     html:'<div class="ico" style="background:color-mix(in srgb,var(--ok) 18%,transparent)">💊</div><div class="t"><b>Vitamin D</b><span>given</span></div><div class="tm">'+hm(v.t)+'</div>'})});
   sl.forEach(function(s){items.push({t:s.start,kind:'sleep',ref:s,html:sleepItem(s,n)})});
-  items.sort(function(a,b){return a.t-b.t}); ITEMS=items;
+  items.sort(function(a,b){return a.t-b.t}); DAYITEMS=items;
   $('dlist').innerHTML=items.length?items.map(function(it,i){
-      return '<div class="row tap" onclick="openItem('+i+')">'+it.html.replace('<div class="tm">','<div class="tm">'+(it.t<d0?'<small style="color:var(--muted);font-weight:500">'+new Date(it.t).toLocaleDateString('en-GB',{weekday:'short'})+' </small>':''))+'<span class="chev">›</span></div>';
+      return '<div class="row tap" onclick="openDayItem('+i+')">'+it.html.replace('<div class="tm">','<div class="tm">'+(it.t<d0?'<small style="color:var(--muted);font-weight:500">'+new Date(it.t).toLocaleDateString('en-GB',{weekday:'short'})+' </small>':''))+'<span class="chev">›</span></div>';
     }).join(''):'<div class="empty">Nothing logged this day.</div>';
 }
 
@@ -1454,9 +1455,9 @@ function dayStats(t){ var e=new Date(t); e.setDate(e.getDate()+1); var b=e.getTi
   r.naps=M.sleeps.filter(function(s){return isNap(s)&&s.start>=t&&s.start<b}).length;
   r.aw=M.wakes.filter(function(w){return w.kind==='Day'&&w.dur>=30*MIN&&w.start>=t&&w.start<b}).map(function(w){return w.dur});
   r.napLen=M.sleeps.filter(function(s){return isNap(s)&&s.start>=t&&s.start<b}).map(function(s){return s.dur});
-  var night=M.sleeps.filter(function(s){return s.long&&s.start>=t+12*HOUR&&s.start<b})[0];
-  if(night){ r.bed=minsOfDay(night.bedStart||night.start); var pts=[night.start].concat(M.feeds.filter(function(f){return f.start>night.start&&f.start<night.end}).map(function(f){return f.start})).concat([night.end]);
-    var mx=0; for(var i=1;i<pts.length;i++)mx=Math.max(mx,pts[i]-pts[i-1]); r.stretch=mx; r.up=minsOfDay(night.end); }
+  // the whole night (false start, the long sleep and the night wake-ups after it), so "up" is the morning, not the first night feed
+  var night=nightsList().filter(function(x){return x.start>=t+12*HOUR&&x.start<b&&x.end<=now()})[0];
+  if(night){ r.bed=minsOfDay(night.bed); r.stretch=night.stretch; r.up=minsOfDay(night.end); }
   r.total=sleepIn(t,b);
   return r; }
 function changesLately(d0){
@@ -1577,7 +1578,7 @@ function renderPatterns2(n){
   $('pSum').innerHTML='<div class="p-h"><b>Last 7 days</b><span>'+cur.days+' full days · compared with the 7 before</span></div><div class="p-tiles">'+
     tile('Sleep',bigDur(cur.sleep),'a day, naps and night',pDelta(cur.sleep,P.sleep,'dur'))+
     tile('Longest stretch',cur.stretch!=null?bigDur(cur.stretch):'–','at night without a feed'+(cur.best?' · best '+dur(cur.best,true):''),pDelta(cur.stretch,P.stretch,'dur'))+
-    tile('Naps',pNum(cur.naps)+'<small> a day</small>',(cur.napLen?dur(cur.napLen,true)+' typical length':''),pDelta(cur.napLen,P.napLen,'dur'))+
+    tile('Naps',pNum(cur.naps)+'<small> a day</small>',(cur.napLen?dur(cur.napLen,true)+' typical length':''),pDelta(cur.naps,P.naps,'n'))+
     tile('Feeds',pNum(cur.feeds)+'<small> a day</small>',(cur.nightFeeds!=null?pNum(cur.nightFeeds)+' during the night':''),pDelta(cur.feeds,P.feeds,'n'))+'</div>';
 
   // ---- 2. his day right now: a typical day with the most common number of naps
@@ -1764,7 +1765,10 @@ function fixUndo(){
     .withFailureHandler(function(e){setSync('err','Not saved');toast((e&&e.message)||'Could not undo');refresh()})
     .applyEdits(ops);
 }
-function toggleSleep(){ log(M&&M.state==='Asleep'?'Awake':'Asleep'); }
+function toggleSleep(){ var le=M&&M.lastEntry;
+  // a double tap would log "asleep" and "awake" a second apart
+  if(le&&(le.type==='Asleep'||le.type==='Awake')&&now()-le.t<5000){ toast('Already logged '+(le.type==='Asleep'?'asleep':'awake')+' at '+hm(le.t)); return; }
+  log(M&&M.state==='Asleep'?'Awake':'Asleep'); }
 function undoLast(){
   if(!M||!M.lastEntry||busy)return;
   if(undoArmed>now()){
@@ -2196,9 +2200,10 @@ function send(ops,msg,tries){
   var miss=ops.filter(function(o){return o.op!=='add'&&!o.row});
   if(miss.length){
     tries=(tries||0)+1;
+    miss.forEach(function(o){ if(o._k)return; var q=QUEUE.filter(function(x){return x[0]===o.iso})[0]; if(q) o._k=classify(q[1])+'|'+sideOf(q[1]); });
     if(tries>8){ if(sb){sb.disabled=false;sb.textContent='Save'} sheetErr('Still saving the last press – try again in a moment'); syncLabel(); return; }
     var go=function(){ miss.forEach(function(o){ var t=parseLocal(o.iso), best=null, bd=2*MIN;
-      (DATA&&DATA.rows||[]).forEach(function(x){ if(!x[2])return; var dd=Math.abs(parseLocal(x[0])-t); if(dd<=bd){ bd=dd; best=x; } });
+      (DATA&&DATA.rows||[]).forEach(function(x){ if(!x[2])return; if(o._k&&classify(String(x[1]))+'|'+sideOf(String(x[1]))!==o._k)return; var dd=Math.abs(parseLocal(x[0])-t); if(dd<=bd){ bd=dd; best=x; } });
       if(best){ o.row=best[2]; o.iso=best[0]; } }); send(ops,msg,tries); };
     if(QUEUE.length){ flushQueue(); setTimeout(go,1500); }
     else google.script.run.withSuccessHandler(function(d){ apply(d); go(); }).withFailureHandler(function(){ setTimeout(go,1500); }).getData();
@@ -2206,13 +2211,13 @@ function send(ops,msg,tries){
   }
   google.script.run.withSuccessHandler(function(d){apply(d);closeSheet();toast(msg||'Saved');})
     .withFailureHandler(function(e){ if(sb){sb.disabled=false;sb.textContent='Save'} setSync('err','Not saved'); sheetErr((e&&e.message)||'Could not save – try again'); refresh(); })
-    .applyEdits(ops);
+    .applyEdits(ops.map(function(o){ var c={}; for(var k in o) if(k!=='_k') c[k]=o[k]; return c; }));
 }
 function future(iso){return parseLocal(iso)>now()+60000}
 
 var EDIT=null;
 function openItem(i){
-  var it=ITEMS[i]; if(!it)return; EDIT=it;
+  var it=ITEMS[i]; if(!it)return; EDIT=it; RM={};
   if(it.kind==='vit'){ var v=it.ref; EDIT=it;
     openSheet('<h3>Vitamin D</h3><div class="sh-sub">'+dayName(v.t)+' at '+hm(v.t)+'</div><div class="fld"><label>Time</label>'+dtInput('vt',v.t)+nudges('vt')+'</div>'+acts('saveVit()')+delBtn('deleteVit','Not given – remove'));
     return; }
@@ -2413,6 +2418,9 @@ function saveSettingsUI(){
     windDown:+v('s_wd'),shortNap:+v('s_sn'),shortNapCut:S.shortNapCut,morningPct:+v('s_mp')/100,trustN:+v('s_tn'),vitOn:$('s_von').getAttribute('data-v')!=='Off',vitTime:v('s_vt')||'10:00',places:v('s_pl').split(',').map(function(x){return x.trim()}).filter(Boolean),
     ageTable:S.ageTable.map(function(r,i){return [r[0],+v('s_age'+i)]})};
   if(!n.birth||!n.nightStart||!n.nightEnd){sheetErr('Fill in all fields');return}
+  var nums=['s_gm','s_fa','s_fr','s_wd','s_sn','s_mp','s_tn'].concat(S.ageTable.map(function(r,i){return 's_age'+i}));
+  for(var ni=0;ni<nums.length;ni++){ var raw=v(nums[ni]).trim(), x=+raw; if(raw===''||!isFinite(x)||x<0||(nums[ni]!=='s_wd'&&x<=0)){ sheetErr('Fill in all the numbers (empty or 0 is not allowed)'); $(nums[ni]).focus(); return; } }
+  if(n.feedRed<n.feedAmber){ sheetErr('"Red after" should be later than "Amber after"'); return; }
   var hy=v('s_hy').trim(); if(/^[a-f0-9]{20,40}$/i.test(hy)) hy='https://webhook.homey.app/'+hy; hy=hy.replace(/\/+$/,'');
   if(hy&&!/^https:\/\/webhook\.homey\.app\/[\w-]+$/.test(hy)){ sheetErr('Homey: paste your Homey ID or https://webhook.homey.app/<ID>'); return; }
   var sb=$('saveBtn'); sb.disabled=true; sb.textContent='Saving…';

@@ -1,6 +1,6 @@
 // Keeps the app itself on the phone so it opens instantly, also without a connection. Data still comes from the Sheet.
 // The saved copy is shown straight away; a newer version is fetched in the background and used from the next open.
-const CACHE = 'babylog-app-2026-11-22b';
+const CACHE = 'babylog-app-2026-11-26a';
 const FILES = ['./', 'index.html', 'icon-180.png', 'icon-192.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES.map(f => new Request(f, { cache: 'reload' }))))); self.skipWaiting(); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k))))); self.clients.claim(); });
