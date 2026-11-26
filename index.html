@@ -2189,9 +2189,21 @@ function sheetErr(t){var e=$('sheetErr'); if(e)e.textContent=t||'';}
 function acts(saveFn,saveTxt){return '<div class="err" id="sheetErr"></div><div class="acts"><button class="b-sec" onclick="closeSheet()">Cancel</button><button class="b-pri" id="saveBtn" onclick="'+saveFn+'">'+(saveTxt||'Save')+'</button></div>'}
 function delBtn(fn,txt){return '<button class="b-del" id="delBtn" onclick="armDel(this,\''+fn+'\')">'+txt+'</button>'}
 function armDel(b,fn){ if(b.classList.contains('arm')){ window[fn](); return; } b.classList.add('arm'); b.textContent='Tap again to delete'; }
-function send(ops,msg){
+function send(ops,msg,tries){
   if(!ops.length){closeSheet();return}
   var sb=$('saveBtn'); if(sb){sb.disabled=true;sb.textContent='Saving…'} setSync('busy','Saving…');
+  // an entry that was just pressed may not have its place in the Sheet yet: save the presses first, then find its row by time
+  var miss=ops.filter(function(o){return o.op!=='add'&&!o.row});
+  if(miss.length){
+    tries=(tries||0)+1;
+    if(tries>8){ if(sb){sb.disabled=false;sb.textContent='Save'} sheetErr('Still saving the last press – try again in a moment'); syncLabel(); return; }
+    var go=function(){ miss.forEach(function(o){ var t=parseLocal(o.iso), best=null, bd=2*MIN;
+      (DATA&&DATA.rows||[]).forEach(function(x){ if(!x[2])return; var dd=Math.abs(parseLocal(x[0])-t); if(dd<=bd){ bd=dd; best=x; } });
+      if(best){ o.row=best[2]; o.iso=best[0]; } }); send(ops,msg,tries); };
+    if(QUEUE.length){ flushQueue(); setTimeout(go,1500); }
+    else google.script.run.withSuccessHandler(function(d){ apply(d); go(); }).withFailureHandler(function(){ setTimeout(go,1500); }).getData();
+    return;
+  }
   google.script.run.withSuccessHandler(function(d){apply(d);closeSheet();toast(msg||'Saved');})
     .withFailureHandler(function(e){ if(sb){sb.disabled=false;sb.textContent='Save'} setSync('err','Not saved'); sheetErr((e&&e.message)||'Could not save – try again'); refresh(); })
     .applyEdits(ops);
