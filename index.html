@@ -374,6 +374,8 @@ html.night.look-v3 .moon{color:var(--sleep)}
 .v3-btn b{font-size:17px;font-weight:650;line-height:1.2}
 .v3-btn small{font-size:12.5px;color:var(--muted);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
 .v3-btn b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.look-v3 .placeAsk.v3miss{box-shadow:inset 0 0 0 1.5px var(--warn)}
+.v3miss .pa-s{font-size:13px;color:var(--muted);margin-top:3px}.v3miss .pa-s b{color:var(--ink)}
 @media (max-width:385px){ .v3-btn{gap:9px;padding:12px 11px} .v3-btn .ic{width:34px;height:34px;font-size:15px} .v3-btn .ic svg{width:18px;height:18px} .v3-btn b{font-size:16px} .v3-btn small{font-size:12px} .v3-big{font-size:31px} }
 .v3-btn.feed .ic{background:var(--feed-soft);color:var(--feed)}
 .v3-btn.feed.on{background:var(--feed);color:#fff}
@@ -1978,11 +1980,29 @@ var V3I={moon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke
   pill:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5c3 3.6 6 7.1 6 10.5a6 6 0 0 1-12 0c0-3.4 3-6.9 6-10.5z"/></svg>',
   check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'};
 function openV3(i){ ITEMS=V3ITEMS; openItem(i); }
+// a forgotten press: "awake" right through the night, or a "nap" that has gone on for hours
+var MISS_SKIP={};
+function missedPress(n){
+  if(!M||MISS_SKIP[M.since]) return null;
+  var since=M.since, d=n-since, fs=M.feeds.filter(function(f){return f.start>since});
+  if(M.state==='Awake'){
+    var crossesNight=false; for(var t=since;t<=n;t+=30*MIN){ var m=minsOfDay(t); if(m>=60&&m<240){ crossesNight=true; break; } }
+    if(d>=4*HOUR&&crossesNight){ var f=fs[0], est=f?Math.min(f.end+10*MIN,n):since+30*MIN;
+      return {kind:'Asleep',t:est,q:'Awake since '+hm(since)+'? “Fell asleep” was probably not pressed.',why:f?'after the '+hm(f.start)+' feed':''}; }
+  } else if(M.state==='Asleep'&&M.curKind(n)==='Nap'&&d>=3*HOUR){
+    var f2=fs[0], est2=f2?f2.start:since+60*MIN;
+    return {kind:'Awake',t:est2,q:'Napping for '+dur(d,true)+'? “Woke up” was probably not pressed.',why:f2?'he was fed at '+hm(f2.start):''};
+  }
+  return null;
+}
+function missFix(){ var x=missedPress(now()); if(!x)return; addLater([{kind:x.kind,t:x.t}],(x.kind==='Asleep'?'Fell asleep ':'Woke up ')+hm(x.t)+' added'); }
+function missPick(){ var x=missedPress(now()); openEarlier('sleep'); if(x){ try{ $('ek').onpick(x.kind==='Asleep'?'Fell asleep':'Woke up'); setT('ea',x.t); ecUpdate(); }catch(e){} } }
+function missNo(){ MISS_SKIP[M.since]=1; render(); }
 function v3Init(){
   document.documentElement.classList.add('look-v3');
   document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){ m.content=/dark/.test(m.media||'')?'#000000':'#F2F2F7'; });
   var v=$('v3'); v.hidden=false;
-  v.innerHTML='<div id="v3place"></div><div class="v3-status" id="v3status"></div><div class="v3-acts" id="v3acts"></div><div class="v3-links" id="v3links"></div>'+
+  v.innerHTML='<div id="v3miss"></div><div id="v3place"></div><div class="v3-status" id="v3status"></div><div class="v3-acts" id="v3acts"></div><div class="v3-links" id="v3links"></div>'+
     '<div class="v3-card" id="v3day"></div><div class="v3-card" id="v3night" hidden></div><div class="v3-card" id="v3recent"></div>';
   $('v3place').appendChild($('placeAsk'));
   var sub=document.createElement('div'); sub.className='v3-sub'; var top=document.querySelector('.top'); top.parentNode.insertBefore(sub,top.nextSibling);
@@ -2031,19 +2051,24 @@ function renderV3(n){
   if(st==='Asleep'){ var night=M.curKind(n)==='Night';
     h+='<div class="v3-lab"><i></i>'+(night?'Asleep · night':'Napping')+'</div><div class="v3-big">'+bigDur(n-M.since)+'</div><div class="v3-meta">since '+hm(M.since)+'</div>';
     if(night){ if(us&&us.up!=null){ var up=d0+us.up*MIN; if(up<n-12*HOUR)up+=DAY; if(up>n+12*HOUR)up-=DAY; h+='<div class="v3-next"><span>Usually up</span><b>~'+fmtTod(us.up)+'</b><em>'+(up>=n?'in '+dur(up-n,true):dur(n-up,true)+' ago')+'</em></div>'; } }
+    else if(missedPress(n)) h+='<div class="v3-next"><span>Check</span><b>Still asleep?</b><em>see above</em></div>';
     else if(plan[0]&&plan[0].wake) h+='<div class="v3-next"><span>Likely awake</span><b>~'+hm(plan[0].e)+'</b><em>in '+dur(plan[0].e-n,true)+'</em></div>';
   } else if(st==='Awake'){
     h+='<div class="v3-lab"><i></i>Awake</div><div class="v3-big">'+bigDur(n-M.since)+'</div><div class="v3-meta">since '+hm(M.since)+'</div>';
-    if(M.kindNow==='Night'||M.kindNow==='Evening') h+='<div class="v3-next"><span>'+(M.kindNow==='Night'?'Night waking':'Woke in the evening')+'</span><b>Back down</b><em>after the feed</em></div>';
+    if(missedPress(n)) h+='<div class="v3-next"><span>Check</span><b>Not logged?</b><em>see above</em></div>';
+    else if(M.kindNow==='Night'||M.kindNow==='Evening') h+='<div class="v3-next"><span>'+(M.kindNow==='Night'?'Night waking':'Woke in the evening')+'</span><b>Back down</b><em>after the feed</em></div>';
     else if(M.nextSleep){ var dn=M.nextSleep-n, wd=M.nextSleep-S.windDown*MIN, c2=n>=M.nextSleep+15*MIN?'bad':n>=wd?'warn':'';
       h+='<div class="v3-next '+c2+'"><span>'+(M.isBedtime?'Bedtime':'Next nap')+(n>=wd&&dn>0?' · wind down':'')+'</span><b>~'+hm(M.nextSleep)+'</b><em>'+(dn>0?'in '+dur(dn,true):dur(-dn,true)+' over')+'</em></div>'; }
   } else h+='<div class="v3-lab"><i></i>Sleep</div><div class="v3-big">–</div><div class="v3-meta">Tap “Fell asleep”</div>';
   $('v3status').innerHTML=h+'</div>';
+  var mp=missedPress(n);
+  $('v3miss').innerHTML=mp?'<div class="placeAsk v3miss"><div class="pa-l">'+mp.q+'</div><div class="pa-s">'+(mp.kind==='Asleep'?'Best guess: asleep at ':'Best guess: awake at ')+'<b>'+hm(mp.t)+'</b>'+(mp.why?' ('+mp.why+')':'')+'</div>'+
+    '<div class="pa-b"><button onclick="missFix()">Add '+hm(mp.t)+'</button><button onclick="missPick()">Other time</button><button class="skip" onclick="missNo()">It’s right</button></div></div>':'';
 
   // the four buttons
   var vit=S.vitOn!==false, td=vit?vitToday(n):[], late=vit&&!td.length&&minsOfDay(n)>=toMin(S.vitTime||'10:00'), asleep=st==='Asleep';
   function B(cls,ic,t,sub,fn){ return '<button class="v3-btn '+cls+'" onclick="'+fn+'"><span class="ic">'+ic+'</span><span class="tx"><b>'+t+'</b><small>'+sub+'</small></span></button>'; }
-  var sleepSub=asleep?'Since '+hm(M.since):(M.nextSleep&&M.kindNow!=='Night'&&M.kindNow!=='Evening'?(M.isBedtime?'Bed ~':'Nap ~')+hm(M.nextSleep):'Tap when he sleeps');
+  var sleepSub=missedPress(n)?'Check the note above':asleep?'Since '+hm(M.since):(M.nextSleep&&M.kindNow!=='Night'&&M.kindNow!=='Evening'?(M.isBedtime?'Bed ~':'Nap ~')+hm(M.nextSleep):'Tap when he sleeps');
   $('v3acts').className='v3-acts'+(vit?'':' three');
   $('v3acts').innerHTML=B('feed'+(side==='Left'?' on':''),'L','Left',side==='Left'?'Suggested side':'Feed',"log('Left')")+
     B('feed'+(side==='Right'?' on':''),'R','Right',side==='Right'?'Suggested side':'Feed',"log('Right')")+
