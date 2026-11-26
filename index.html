@@ -765,8 +765,14 @@ function nextFeedGap(t,n){
 function nextFeedAt(lf,n){
   var g=nextFeedGap(lf.start,n); if(!g) return null;
   var t=lf.start+g, out={t:t,afterNap:false};
-  if(M.isNight(t)||M.kindNow==='Night'||M.kindNow==='Evening') return out;
   function md(a){a=a.slice().sort(function(x,y){return x-y});var m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2}
+  // down for the night and not fed since: the first night feed comes after his usual first stretch, not on the evening's short gaps
+  if(M.state==='Asleep'&&M.curKind(n)==='Night'&&lf.start<M.since+15*MIN){
+    var fs=[]; nightsList().forEach(function(x){ if(x.end>n||x.start<n-8*DAY)return;
+      var f=M.feeds.filter(function(f){return f.start>x.start})[0]; if(f&&f.start<x.end) fs.push(f.start-x.start); });
+    if(fs.length>=3) return {t:M.since+md(fs),afterNap:false}; }
+  var napNow=M.state==='Asleep'&&M.curKind(n)==='Nap'; // napping now: the feed waits until he wakes, also early in the morning
+  if((M.isNight(t)&&!napNow)||M.kindNow==='Night'||M.kindNow==='Evening') return out;
   var naps=M.sleeps.filter(function(x){return x.kind==='Nap'&&x.dur>=15*MIN&&x.start>=n-7*DAY&&x.end<=n});
   if(naps.length<3) return out;
   var napLen=md(naps.map(function(x){return x.dur})), dl=[];
@@ -1687,19 +1693,26 @@ var FRESH=0;
 function apply(data){
   dropSaved(data); DATA=data; FRESH=Date.now(); skew=parseLocal(data.now)-Date.now(); M=build(withQueue(data)); render(); syncLabel();
 }
+var TABID=Math.random().toString(36).slice(2);
+function otherFlushing(){ try{ var l=JSON.parse(localStorage.getItem('babylog_flush')||'null'); return !!(l&&l.id!==TABID&&l.until>Date.now()); }catch(e){ return false; } }
+function flushLock(on){ try{ if(on) localStorage.setItem('babylog_flush',JSON.stringify({id:TABID,until:Date.now()+35000}));
+  else { var l=JSON.parse(localStorage.getItem('babylog_flush')||'null'); if(l&&l.id===TABID) localStorage.removeItem('babylog_flush'); } }catch(e){} }
 function flushQueue(){
-  if(flushing)return; loadQ(); if(!QUEUE.length){ syncLabel(); return; } clearTimeout(RETRY); flushing=true;
+  if(flushing)return; loadQ(); if(!QUEUE.length){ syncLabel(); return; } clearTimeout(RETRY);
+  // the app open twice on this phone: let the other copy finish sending, then look again
+  if(otherFlushing()){ syncLabel(); RETRY=setTimeout(flushQueue,3000); return; }
+  flushing=true; flushLock(true);
   var sending=QUEUE.slice(), ids=sending.map(function(q){return q[2]}), ls=LASTSEND;
   // a fresh single tap is written with the Sheet's own clock, like before; anything else keeps the time it was tapped
   var live=ls&&FAILS===0&&sending.length===ls.ids.length&&ls.ids.every(function(id){return ids.indexOf(id)>=0})&&Date.now()-ls.tap<20000;
   sending.forEach(function(q){ q[3]=live?'live':'add'; }); saveQ(); syncLabel();
-  function ok(d){ flushing=false; FAILS=0; var old=sending.filter(function(q){return Date.now()-q[4]>60000}).length;
+  function ok(d){ flushing=false; flushLock(false); FAILS=0; var old=sending.filter(function(q){return Date.now()-q[4]>60000}).length;
     QUEUE=QUEUE.filter(function(q){return ids.indexOf(q[2])<0}); saveQ(); apply(d);
     if(ls&&LASTSEND===ls&&ls.ids.every(function(id){return ids.indexOf(id)>=0})){ LASTSEND=null;
       if(ls.kinds[0]!=='UNDO'&&Date.now()-ls.tap<15000){ LASTLOG=findLogged(d,ls.kinds,ls.t0); if(LASTLOG) fixToast(ls.label,ls.kinds); } }
     else if(old) toast('Saved '+old+' entr'+(old>1?'ies':'y')+' from when you were offline');
     if(QUEUE.length) flushQueue(); }
-  function bad(){ flushing=false; FAILS++; syncLabel();
+  function bad(){ flushing=false; flushLock(false); FAILS++; syncLabel();
     if(FAILS===1) toast('No connection – kept on the phone, saves automatically');
     RETRY=setTimeout(function(){ if(QUEUE.length) refresh(); },Math.min(60000,5000*FAILS)); }
   var r=google.script.run.withSuccessHandler(ok).withFailureHandler(bad);
@@ -1822,8 +1835,14 @@ function nextFeedGap(t,n){
 function nextFeedAt(lf,n){
   var g=nextFeedGap(lf.start,n); if(!g) return null;
   var t=lf.start+g, out={t:t,afterNap:false};
-  if(M.isNight(t)||M.kindNow==='Night'||M.kindNow==='Evening') return out;
   function md(a){a=a.slice().sort(function(x,y){return x-y});var m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2}
+  // down for the night and not fed since: the first night feed comes after his usual first stretch, not on the evening's short gaps
+  if(M.state==='Asleep'&&M.curKind(n)==='Night'&&lf.start<M.since+15*MIN){
+    var fs=[]; nightsList().forEach(function(x){ if(x.end>n||x.start<n-8*DAY)return;
+      var f=M.feeds.filter(function(f){return f.start>x.start})[0]; if(f&&f.start<x.end) fs.push(f.start-x.start); });
+    if(fs.length>=3) return {t:M.since+md(fs),afterNap:false}; }
+  var napNow=M.state==='Asleep'&&M.curKind(n)==='Nap'; // napping now: the feed waits until he wakes, also early in the morning
+  if((M.isNight(t)&&!napNow)||M.kindNow==='Night'||M.kindNow==='Evening') return out;
   var naps=M.sleeps.filter(function(x){return x.kind==='Nap'&&x.dur>=15*MIN&&x.start>=n-7*DAY&&x.end<=n});
   if(naps.length<3) return out;
   var napLen=md(naps.map(function(x){return x.dur})), dl=[];
@@ -1950,22 +1969,15 @@ function todayRowHtml(n,sl){
 }
 var LN_HIDE=null; try{ LN_HIDE=localStorage.getItem('babylog_lnhide'); }catch(e){}
 function hideLastNight(k){ LN_HIDE=k; try{localStorage.setItem('babylog_lnhide',k)}catch(e){} render(); }
+// last night, the same night as Patterns and the summary use (bedtime incl. a false start, until up for the day)
+function lastNight(n){ var d0=startOfDay(n), l=nightsList().filter(function(x){return x.end>=d0+3*HOUR&&x.end<=n}); return l[l.length-1]||null; }
 function renderLastNight(n){
   var c=$('lnCard'), d0=startOfDay(n), m=minsOfDay(n);
   if(m<4*60||m>=12*60){ c.hidden=true; return; }
   // the morning wake-up: the last night-time sleep that ended this morning
-  var ends=M.sleeps.filter(function(s){return s.kind==='Night'&&s.end>=d0+3*HOUR&&s.end<=n});
-  var last=ends[ends.length-1];
-  if(!last||LN_HIDE===String(last.end)){ c.hidden=true; return; }
-  var from=d0-9*HOUR; // from 15:00 yesterday
-  var segs=M.sleeps.filter(function(s){return s.kind==='Night'&&s.start>=from&&s.end<=last.end});
-  if(!segs.length){ c.hidden=true; return; }
-  var bed=Math.min.apply(null,segs.map(function(s){return s.bedStart||s.start}));
-  var slept=segs.reduce(function(a,s){return a+s.dur},0);
-  var feeds=M.feeds.filter(function(f){return f.start>bed&&f.start<last.end});
-  var mx=0; segs.forEach(function(sg){ var pts=[sg.start].concat(feeds.filter(function(f){return f.start>sg.start&&f.start<sg.end}).map(function(f){return f.start})).concat([sg.end]);
-    for(var i=1;i<pts.length;i++)mx=Math.max(mx,pts[i]-pts[i-1]); });
-  var awake=(last.end-bed)-slept;
+  var ln=lastNight(n);
+  if(!ln||LN_HIDE===String(ln.end)){ c.hidden=true; return; }
+  var last={end:ln.end}, bed=ln.bed, slept=ln.slept, feeds={length:ln.feeds}, mx=ln.stretch, awake=(ln.end-ln.bed)-ln.slept;
   c.hidden=false;
   c.innerHTML='<div class="ii">'+(window.LOOK==='new'?'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>':'🌙')+'</div><div><b>Last night: '+dur(slept,true)+' of sleep</b><span>'+hm(bed)+'–'+hm(last.end)+' · '+feeds.length+' feed'+(feeds.length===1?'':'s')+' · longest '+dur(mx,true)+
     (awake>=20*MIN?' · awake '+dur(awake,true)+' in the night':'')+'</span></div>'+
@@ -2047,7 +2059,7 @@ function renderV3(n){
 
   // status: feed and sleep, same layout
   var h='<div class="v3-tile feed"><div class="v3-lab"><i></i>Last feed</div>';
-  if(lf){ h+='<div class="v3-big">'+bigDur(n-lf.end)+'</div><div class="v3-meta">'+hm(lf.start)+(lf.side?' · '+lf.side+' side':'')+'</div>';
+  if(lf){ h+='<div class="v3-big">'+bigDur(n-lf.end)+'</div><div class="v3-meta">'+hm(lf.start)+(lf.side?' · '+(lf.side==='Both'?'both sides':lf.side+' side'):'')+'</div>';
     if(nf){ var df=nf.t-n, c=df<=-20*MIN?'bad':df<=2*MIN?'warn':df<=30*MIN?'soon':'';
       h+='<div class="v3-next '+c+'"><span>Next feed'+(nf.afterNap?' · after nap':'')+'</span><b>'+(Math.abs(df)<=2*MIN?'Now':'~'+hm(nf.t))+'</b><em>'+(df>2*MIN?'in '+dur(df,true):df<-2*MIN?dur(-df,true)+' late':'')+'</em></div>'; } }
   else h+='<div class="v3-big">–</div><div class="v3-meta">No feeds yet</div>';
@@ -2104,12 +2116,8 @@ function renderV3(n){
 
   // last night (mornings)
   var ln=$('v3night'), m=minsOfDay(n), last=null;
-  if(m>=4*60&&m<14*60){ var ends=M.sleeps.filter(function(x){return x.kind==='Night'&&x.end>=d0+3*HOUR&&x.end<=n}); last=ends[ends.length-1]; }
-  if(last){ var segs=M.sleeps.filter(function(x){return x.kind==='Night'&&x.start>=d0-9*HOUR&&x.end<=last.end});
-    var bed=Math.min.apply(null,segs.map(function(x){return x.bedStart||x.start})), slept=segs.reduce(function(a,x){return a+x.dur},0);
-    var nfd=M.feeds.filter(function(f){return f.start>bed&&f.start<last.end}), mx=0;
-    segs.forEach(function(sg){ var pts=[sg.start].concat(nfd.filter(function(f){return f.start>sg.start&&f.start<sg.end}).map(function(f){return f.start})).concat([sg.end]);
-      for(var i=1;i<pts.length;i++)mx=Math.max(mx,pts[i]-pts[i-1]); });
+  if(m>=4*60&&m<14*60) last=lastNight(n);
+  if(last){ var bed=last.bed, slept=last.slept, nfd={length:last.feeds}, mx=last.stretch;
     ln.hidden=false;
     ln.innerHTML='<div class="v3-h"><b>Last night</b><span>'+hm(bed)+' → '+hm(last.end)+'</span></div>'+
       '<div class="v3-stats" style="margin-top:0;padding-top:0;border-top:0"><div><b>'+dur(slept,true)+'</b><span>Asleep</span></div><div><b>'+nfd.length+'</b><span>Feeds</span><small>in the night</small></div><div><b>'+dur(mx,true)+'</b><span>Longest</span><small>between feeds</small></div></div>';
@@ -2309,6 +2317,7 @@ function openEarlier(which){
   $('ek').onpick(def);
 }
 function saveEarlier(){
+  if(!$('sheet').classList.contains('on')) return; // second tap while the sheet is closing
   var v=$('ek').getAttribute('data-v'), k=EK[v]||v, a=readT('ea'), n=now();
   if(a==null){sheetErr('Pick a time');return}
   if(v==='Whole nap'){ var b=readT('eb'); if(b==null){sheetErr('Pick when he woke up');return}
