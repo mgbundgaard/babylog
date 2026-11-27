@@ -2347,8 +2347,8 @@ function openSettings(){
     '<div class="setgrp"><div>Night</div>'+sr('s_ns','Night starts','Sleep after this counts as night','time',S.nightStart)+sr('s_ne','Night ends','','time',S.nightEnd)+'</div>'+
     '<div class="setgrp"><div>Feeds</div>'+
       sr('s_gm','Same feed if within (min)','Presses closer than this = one feed','number',S.groupMin,'inputmode="numeric"')+
-      sr('s_fa','Amber after (hours)','','number',S.feedAmber,'inputmode="decimal" step="0.25"')+
-      sr('s_fr','Red after (hours)','','number',S.feedRed,'inputmode="decimal" step="0.25"')+'</div>'+
+      sr('s_fa','Amber after (hours)','Also tells Homey: amning_amber','number',S.feedAmber,'inputmode="decimal" step="0.25"')+
+      sr('s_fr','Red after (hours)','Also tells Homey: amning_red','number',S.feedRed,'inputmode="decimal" step="0.25"')+'</div>'+
     '<div class="setgrp"><div>Sleep suggestions</div>'+
       sr('s_wd','Wind down warning (min before)','','number',S.windDown,'inputmode="numeric"')+
       sr('s_sn','Short nap is under (min)','','number',S.shortNap,'inputmode="numeric"')+
@@ -2359,7 +2359,7 @@ function openSettings(){
       sr('s_vt','Remind if not given by','The card turns orange after this time','time',S.vitTime||'10:00')+'</div>'+
     '<div class="setgrp"><div>Lock screen widget</div><div id="wset"><button class="b-sec" style="width:100%;border:0;border-radius:12px;padding:12px;font:inherit;font-weight:700;margin-top:6px" onclick="openWidgetSetup()">Set up the widget</button></div></div>'+
     '<div class="setgrp"><div>Homey</div>'+sr('s_hy','Webhook address','Homey ID or https://webhook.homey.app/…','text',DATA.homey||'','style="width:190px;text-align:left" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Not set"')+
-      '<div class="sh-sub" style="margin:6px 0 0;font-size:12.5px">Each press is sent to Homey as an event: <b>amning</b> (tag Left/Right), <b>sover</b>, <b>vaagen</b>, <b>dvitamin</b>. Saving sends a <b>test</b> event.</div></div>'+
+      '<div class="sh-sub" style="margin:6px 0 0;font-size:12.5px">Each press is sent to Homey as an event: <b>amning</b> (tag Left/Right), <b>sover</b>, <b>vaagen</b>, <b>dvitamin</b>. Every 5 minutes the Google script also sends <b>amning_amber</b> and <b>amning_red</b> when “Amber after” / “Red after” has passed since the last feed (tag = minutes). Saving sends a <b>test</b> event.</div></div>'+
     '<div class="setgrp"><div>Nap places</div>'+sr('s_pl','Places','Separate with commas','text',(S.places||['Pram','Bed','Mattress']).join(', '),'style="width:190px;text-align:left"')+'</div>'+
     '<div class="setgrp"><div>Typical awake time by age (min)</div><div class="agegrid">'+
       S.ageTable.map(function(r,i){return '<label class="'+(i===cur?'cur':'')+'">'+(r[0]?r[0]+'+ wks':'Newborn')+'<input id="s_age'+i+'" type="number" inputmode="numeric" value="'+r[1]+'"></label>'}).join('')+
